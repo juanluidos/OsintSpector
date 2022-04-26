@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+    <head>
+        <title>
+            Home page
+        </title>
+    </head>
+    <body>
+        <h1>Home Page!</h1>
+        <p>Hello</p>
+        <p>{{content}}</p> <!--aqui meto las variables o la info q quiera pasar al front-->
+        <p>{{r}}</p>
+
+        {% for i in range(10) %} <!--con esta estructura puedo escribior en python-->
+            {% if i % 2 == 1 %}
+                <p>{{i}}</p>
+            {%endif%}
+        {% endfor%} 
+
+        {% for x in lista %} <!--con esta estructura puedo escribior en python-->
+            <p>{{x}}</p>
+    {% endfor%} 
+    </body>
+</html>

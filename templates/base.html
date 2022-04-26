@@ -1,0 +1,13 @@
+<!doctype html>
+<html>
+    <head>
+        <title>
+            {% block title%}{%endblock%} <!--creamos un bloque para q los hijos puedan editar aqui-->
+        </title>
+    </head>
+    <body>
+        <h1>JuanLu website</h1>
+        <h1>{%block content%}</h1>
+        {%endblock%}
+    </body>
+</html>
