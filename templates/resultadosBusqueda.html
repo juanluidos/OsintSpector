@@ -1,14 +1,15 @@
 <html>
 <body>
 
-    <p>buenas tardes: {{query}}</p>
+    <p>Búsqueda para {{nombre}} con nickname {{nickname}}</p>
 
-    {% if nombre %}
-    <p> si había nombre xd es {{nombre}}</p>
+    {% if nickname %}
+    <p> si había nickname es {{nickname}}</p>
+    <p> los resultados son: {{resultado}}</p>
 </body>
 
     {% else %}
-    <p> no hay nombre xd</p>
+    <p> no hay nickname xd</p>
 
     {% endif %}
 </html>
