@@ -122,5 +122,5 @@ def usernameScrapping(username, inputfile):
     for thread in threads:
         thread.join()
 
-    return (all_found_sites, username_results)
+    return all_found_sites
 

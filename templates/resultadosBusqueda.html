@@ -5,11 +5,17 @@
 
     {% if nickname %}
     <p> si había nickname es {{nickname}}</p>
-    <p> los resultados son: {{resultado}}</p>
-</body>
+    <p> los resultados son: {{resultadoNickname}}</p> </br>
+
+    {% elif email %}
+    <p> si había email es {{email}}</p>
+    <p> los resultados son: {{resultadoEmail}}</p> </br>
 
     {% else %}
     <p> no hay nickname xd</p>
 
     {% endif %}
+
+</body>
+
 </html>

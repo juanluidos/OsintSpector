@@ -1,7 +1,8 @@
 from django.shortcuts import render
+import os
 from flask import Flask, redirect, url_for, render_template, request
-import subprocess
-from username import scraping
+from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
+from searchScripts.buscarPersona.emailPwned.emailScraping import emailScrapping
 app = Flask(__name__)
 
 @app.route("/")
@@ -24,10 +25,15 @@ def result():
         city = request.form["city"]
 
         if nickname:
-            resultadoscript = scraping.usernameScrapping(nickname, './username/web_accounts_list.json')
-            return render_template("resultadosBusqueda.html", nickname=nickname, resultado = resultadoscript)
+            resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+            return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname)
+
+        elif email:
+            resultadosEmail = emailScrapping(email, os.getenv("API_KEY"))
+            return render_template("resultadosBusqueda.html", email=email, resultadoEmail = resultadosEmail)
         else:
-            return render_template("resultadosBusqueda.html", nombre = nombre, nickname = nickname)
+            return "hi"
+
     else:
         #quizás añadir 404.html en lugar de redirect
         return redirect("index.html")
