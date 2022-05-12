@@ -1,21 +1,34 @@
+import asyncio
+import sys
 from django.shortcuts import render
 import os
 from flask import Flask, redirect, url_for, render_template, request
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
-from searchScripts.buscarPersona.emailPwned.emailScraping import emailScrapping
+from searchScripts.buscarPersona.emailPwned.emailScraping import emailBreached, emailBreachedExpanded, emailPasted
 app = Flask(__name__)
+
+if sys.platform == "win32" and (3, 8, 0) <= sys.version_info < (3, 9, 0):
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 @app.route("/")
 @app.route("/index.html")
 def home():
     return render_template("index.html")
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+@app.route("/info")
+def info():
+    return render_template("info.html")
+
 @app.route("/buscarPersona")
 def buscarPersona():
     return render_template("buscarPersona.html")    
 
 @app.route("/result", methods=["POST", "GET"])
-def result():
+async def result():
 
     if request.method == 'POST':
         nombre = request.form["nombre"]
@@ -24,15 +37,44 @@ def result():
         email = request.form["email"]
         city = request.form["city"]
 
-        if nickname:
+        if nombre:
+            if apellidos:
+                if nickname:
+                    if email:
+                        if city:
+                            return "nombre apellido nickname email city"
+                        else:
+                            return "nombre apellido nickname email nocity"
+                    elif city:
+                        return "nombre apellido nickname noemail city"
+                elif email:
+                    return "a"
+                elif city:
+                    return "a"
+            elif nickname:
+                return "he"
+            elif email:
+                return "he"
+            elif city:
+                return "he"
+            else:
+                return "nombre noapellido nonickname noemail nocity"
+        elif apellidos:
+            return "he"
+            
+        elif nickname:
             resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
             return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname)
 
         elif email:
-            resultadosEmail = emailScrapping(email, os.getenv("API_KEY"))
-            return render_template("resultadosBusqueda.html", email=email, resultadoEmail = resultadosEmail)
+            resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY"))
+            resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY"))
+            return render_template("resultadosBusqueda.html", email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+
+        elif city:
+            return "he"
         else:
-            return "hi"
+            return redirect("buscarPersona")
 
     else:
         #quizás añadir 404.html en lugar de redirect
