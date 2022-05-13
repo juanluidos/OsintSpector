@@ -1,14 +1,8 @@
-import asyncio
-import sys
-from django.shortcuts import render
 import os
 from flask import Flask, redirect, url_for, render_template, request
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
 from searchScripts.buscarPersona.emailPwned.emailScraping import emailBreached, emailBreachedExpanded, emailPasted
 app = Flask(__name__)
-
-if sys.platform == "win32" and (3, 8, 0) <= sys.version_info < (3, 9, 0):
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 @app.route("/")
 @app.route("/index.html")
