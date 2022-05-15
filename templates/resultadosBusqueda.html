@@ -6,14 +6,18 @@
     {% if nickname %}
     <p> si había nickname es {{nickname}}</p>
     <p> los resultados son: {{resultadoNickname}}</p> </br>
+    
+    {% endif %}
+    <!-- Poner cuando este bonito que no se aportó el nickname-->
+    {% if email %}
 
-    {% elif email %}
     <p> si había email es {{email}}</p>
     <p> los resultados son: {{resultadosBreached}}</p> </br>
-    <p> ademas: {{resultadosPasted}}
+    <p> estos resultados leaked email son una lista de jsons, cada uno tiene propiedad name, title, domain, breachDate, addedDate modifieddate, pqncount, descirption</p>
+    <p> además los Pastes son: {{resultadosPasted}}</p> </br>
+    <p> estos pastes son una lista de jsons, cada uno tiene propiedad id, source, title, date, emailcount</p>
 
-    {% else %}
-    <p> no hay nickname xd</p>
+
 
     {% endif %}
 

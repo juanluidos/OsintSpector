@@ -290,4 +290,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+#Own tests directories
+
+/pruebas html
+
 # End of https://www.toptal.com/developers/gitignore/api/python,flask,venv,dotenv,windows

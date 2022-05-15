@@ -1,5 +1,6 @@
 import requests
 
+from utils.commonFunctions import randomUserAgent
 
 def make_request(target,api_key, url):
 
@@ -9,6 +10,7 @@ def make_request(target,api_key, url):
     'format': 'application/json',
     'timeout': '2.5',
     'HIBP': str(api_key),
+    'User-Agent': randomUserAgent("utils/userAgentsList.txt"),
     }
     return requests.request("GET", f"{url}{target}", headers=headers, data=payload)
 
@@ -43,7 +45,7 @@ def emailPasted(target, api_key):
     response = make_request(target,api_key, "https://haveibeenpwned.com/api/v3/pasteaccount/")
     if response.status_code == 200:
         data = response.json()
-        all_found_sites.append(data)
+        all_found_sites = data
 
         print(
             "Found {num} times pasted for {target} account using HIBP v3".format(
@@ -77,5 +79,6 @@ def emailBreachedExpanded(target, api_key):
             print("Could not contact HIBP v3 for " + target)
             print(response.status_code)
         
-    print(all_found_sites)
+    print(f"Los sitios donde se leakearon el correo con información sensible fue:{all_found_sites}")
     return extendedInfo_sites
+

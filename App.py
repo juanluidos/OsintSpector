@@ -22,7 +22,7 @@ def buscarPersona():
     return render_template("buscarPersona.html")    
 
 @app.route("/result", methods=["POST", "GET"])
-async def result():
+def result():
 
     if request.method == 'POST':
         nombre = request.form["nombre"]
@@ -39,36 +39,119 @@ async def result():
                             return "nombre apellido nickname email city"
                         else:
                             return "nombre apellido nickname email nocity"
-                    elif city:
-                        return "nombre apellido nickname noemail city"
-                elif email:
-                    return "a"
-                elif city:
-                    return "a"
-            elif nickname:
-                return "he"
-            elif email:
-                return "he"
-            elif city:
-                return "he"
+                    else:
+                        if city:
+                            return "nombre apellido nickname noemail city"
+                        else:
+                            return "nombre apellido nickname noemail nocity"
+                else:
+                    if email:
+                        if city:
+                            return "nombre apellido nonickname email city"
+                        else:
+                            return "nombre apellido nonickname email nocity"
+                    else:
+                        if city:
+                            return "nombre apellido nonickname noemail city"
+                        else:
+                            return "nombre apellido nonickname noemail nocity"
             else:
-                return "nombre noapellido nonickname noemail nocity"
-        elif apellidos:
-            return "he"
-            
-        elif nickname:
-            resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-            return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname)
-
-        elif email:
-            resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY"))
-            resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY"))
-            return render_template("resultadosBusqueda.html", email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
-
-        elif city:
-            return "he"
+                if nickname:
+                    if email:
+                        if city:
+                            return "nombre noapellido nickname email city"
+                        else:
+                            return "nombre noapellido nickname email nocity"
+                    else:
+                        if city:
+                            return "nombre noapellido nickname noemail city"
+                        else:
+                            return "nombre noapellido nickname noemail nocity"
+                else:
+                    if email:
+                        if city:
+                            return "nombre noapellido nonickname email city"
+                        else:
+                            return "nombre noapellido nonickname email nocity"
+                    else:
+                        if city:
+                            return "nombre noapellido nonickname noemail city"
+                        else:
+                            return "nombre noapellido nonickname noemail nocity"
         else:
-            return redirect("buscarPersona")
+            if apellidos:
+                if nickname:
+                    if email:
+                        if city:
+                            return "nonombre apellido nickname email city"
+                        else:
+                            return "nonombre apellido nickname email nocity"
+                    else:
+                        if city:
+                            return "nonombre apellido nickname noemail city"
+                        else:
+                            return "nonombre apellido nickname noemail nocity"
+                else:
+                    if email:
+                        if city:
+                            return "nonombre apellido nonickname email city"
+                        else:
+                            return "nonombre apellido nonickname email nocity"
+                    else:
+                        if city:
+                            return "nonombre apellido nonickname noemail city"
+                        else:
+                            return "nonombre apellido nonickname noemail nocity"
+            else:
+                if nickname:
+                    if email:
+                        if city:
+                            resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                            resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                            resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                            return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                            #"nonombre noapellido nickname email city" TODO FALTA CITY
+                        else:
+                            resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                            resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                            resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                            return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                            #"nonombre noapellido nickname email nocity"
+                    else:
+                        if city:
+                            return "nonombre noapellido nickname noemail city"
+                        else:
+                            resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                            return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname) 
+                            #nonombre noapellido nickname noemail nocity
+                else:
+                    if email:
+                        if city:
+                            return "nonombre noapellido nonickname email city"
+                        else:
+                            resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                            resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                            return render_template("resultadosBusqueda.html", email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                            #"nonombre noapellido nonickname email nocity"
+                    else:
+                        if city:
+                            return "nonombre noapellido nonickname noemail city"
+                        else:
+                            return redirect("/buscarPersona")
+
+        # elif nickname:
+        #     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+        #     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname)
+
+        # elif email:
+        #     resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+        #     resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+        #     return render_template("resultadosBusqueda.html", email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+
+        # elif city:
+        #     return "he"
+        # else:
+        #     return redirect("buscarPersona")
 
     else:
         #quizás añadir 404.html en lugar de redirect

@@ -14,6 +14,8 @@ import urllib3
 import threading
 import logging
 
+from utils.commonFunctions import randomUserAgent
+
 
 def usernameScrapping(username, inputfile):
     #todos los sitios encontrados con username demandado
@@ -24,7 +26,8 @@ def usernameScrapping(username, inputfile):
     
     headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate'
+            'Accept-Encoding': 'gzip, deflate',
+                'User-Agent': randomUserAgent("utils/userAgentsList.txt"),
             }
 
     # Create the final results dictionary
@@ -33,7 +36,7 @@ def usernameScrapping(username, inputfile):
     def web_call(location):
         try:
             # Make web request for that URL, timeout in X secs and don't verify SSL/TLS certs
-            resp = requests.get(location, headers=headers, timeout=60, verify=False)
+            resp = requests.get(location, headers=headers, timeout=30, verify=False)
         except requests.exceptions.Timeout:
             return f' !  ERROR: {location} CONNECTION TIME OUT. Try increasing the timeout delay.'
         except requests.exceptions.TooManyRedirects:
