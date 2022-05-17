@@ -1,7 +1,8 @@
 import os
 from flask import Flask, redirect, url_for, render_template, request
+from searchScripts.buscarPersona.phone.phoneSearch import phonebooksearch
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
-from searchScripts.buscarPersona.emailPwned.emailScraping import emailBreached, emailBreachedExpanded, emailPasted
+from searchScripts.buscarPersona.emailPwned.emailScraping import emailBreached, emailBreachedExpanded, emailPasted, pruebaIntel
 app = Flask(__name__)
 
 @app.route("/")
@@ -30,6 +31,7 @@ def result():
         nickname = request.form["nickname"]
         email = request.form["email"]
         city = request.form["city"]
+        phone = request.form["phone"]
 
         if nombre:
             if apellidos:
@@ -109,13 +111,15 @@ def result():
                             resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
                             resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
                             resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
-                            return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                            resultadosIntelx = pruebaIntel(email)
+                            return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail, resultadosIntelx = resultadosIntelx)
                             #"nonombre noapellido nickname email city" TODO FALTA CITY
                         else:
                             resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
                             resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
                             resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
-                            return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                            resultadosIntelx = pruebaIntel(email)
+                            return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail, resultadosIntelx = resultadosIntelx)
                             #"nonombre noapellido nickname email nocity"
                     else:
                         if city:
@@ -131,13 +135,19 @@ def result():
                         else:
                             resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
                             resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
-                            return render_template("resultadosBusqueda.html", email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                            resultadosIntelx = pruebaIntel(email)
+                            return render_template("resultadosBusqueda.html",email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail, resultadosIntelx = resultadosIntelx)
                             #"nonombre noapellido nonickname email nocity"
                     else:
                         if city:
                             return "nonombre noapellido nonickname noemail city"
                         else:
-                            return redirect("/buscarPersona")
+                            resultadosIntelx = phonebooksearch(phone)
+                            return render_template("resultadosBusqueda.html",phone=phone, resultadosIntelx = resultadosIntelx)
+                            #return redirect('buscarPersona') TODO
+                            #"nonombre noapellido nonickname noemail nocity"
+
+            
 
         # elif nickname:
         #     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
