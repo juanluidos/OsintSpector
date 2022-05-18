@@ -1,13 +1,6 @@
-import argparse
-import codecs
-from datetime import datetime
 import json
-import os
 import random
-import signal
 import string
-import sys
-import time
 
 import requests
 import urllib3
