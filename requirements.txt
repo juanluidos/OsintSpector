@@ -11,3 +11,6 @@ python-dotenv
 gunicorn
 bs4
 playwright
+playwright_stealth
+asyncio
+time
