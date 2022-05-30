@@ -9,20 +9,35 @@
     
     {% endif %}
     <!-- Poner cuando este bonito que no se aportó el nickname-->
+
+
+
     {% if email %}
 
     <p> si había email es {{email}}</p>
-    <p> los resultados son: {{resultadosBreached}}</p> </br>
+    <p> los resultados son: {{resultadosPwnedEmail}}</p> </br>
     <p> estos resultados leaked email son una lista de jsons, cada uno tiene propiedad name, title, domain, breachDate, addedDate modifieddate, pqncount, descirption</p>
-    <p> además los Pastes son: {{resultadosPasted}}</p> </br>
-    <p> estos pastes son una lista de jsons, cada uno tiene propiedad id, source, title, date, emailcount</p> </br>
-
-
 
 
     {% endif %}
+    <!-- Poner cuando este bonito que no se aportó el email-->
 
-    <p> {{phone}} además los resultados son: {{resultadosIntelx}}</p> </br>
+
+
+
+    {%if phone %}
+
+    <p> si había teléfono es {{phone}}</p>
+    <p> los resultados son: {{resultadosPwnedPhone}}</p> </br>
+    <p> estos resultados leaked email son una lista de jsons, cada uno tiene propiedad name, title, domain, breachDate, addedDate modifieddate, pqncount, descirption</p>
+
+    {% endif%}
+    <!-- Poner cuando este bonito que no se aportó el phone-->
+
+    {% if darknet %}
+    <p> los resultados darknet son: {{resultadoDarknet}} <p></br>
+    <p> con nombre {{nombre}} y apellidos {{apellidos}} <p>
+    {%endif%}
 
 </body>
 

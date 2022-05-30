@@ -20,11 +20,8 @@ def usernameScrapping(username, inputfile):
     headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate',
-                'User-Agent': randomUserAgent("utils/userAgentsList.txt"),
+                'User-Agent': randomUserAgent("utils/userAgentsList.txt")
             }
-
-    # Create the final results dictionary
-    username_results = []
 
     def web_call(location):
         try:
@@ -88,9 +85,7 @@ def usernameScrapping(username, inputfile):
                 if code_match and string_match:
                     if 'pretty_uri' in site:
                         url = site['pretty_uri'].replace("{account}", uname)
-                        
-                    username_results.append('[+] Found user at %s' % url)
-                    all_found_sites.append(url)
+                    all_found_sites.append((site["name"], site["category"], url))
                     return
             else:
                 if code_match and string_match:

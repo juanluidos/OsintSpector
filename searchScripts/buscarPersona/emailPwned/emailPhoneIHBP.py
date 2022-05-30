@@ -14,7 +14,7 @@ def randomUserAgent(filename):
 class HIBPScraping:
 
     async def run(self,p):
-        browser = await p.chromium.launch(headless=False, slow_mo=100)
+        browser = await p.chromium.launch(slow_mo=100)
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
             user_agent = userAgent
@@ -31,13 +31,13 @@ class HIBPScraping:
             page = await context.new_page()
             await stealth_async(page) #stealth
             await page.goto("https://haveibeenpwned.com/")
-            time.sleep(2)
+            time.sleep(1)
             await page.fill("input[type=email]", input)
             await page.click("button[type=submit]")
             await page.is_visible("div.pwnedRow")
 
             try:
-                await page.click("#pwnedSites")
+                await page.click("#pwnedSites", timeout=5000)
             except:
                 breaches = False
             else:
@@ -45,7 +45,7 @@ class HIBPScraping:
                 soupSites = BeautifulSoup(htmlSites, "html.parser")
 
             try:
-                await page.click("#pastes")
+                await page.click("#pastes", timeout=5000)
             except:
                 pastes = False
             else:
@@ -72,39 +72,12 @@ class HIBPScraping:
 
         if result[3] == True:
             resultsPastes = result[2].find("table", {"class": "table-striped"}).find("tbody").findAll("tr")
-            #habra que hacer 2 bucles creo, mirar mañana
             for paste in resultsPastes:
-                tittlePasted = "a"
-                linkPasted = "aa"
-                datePasted = "b"
-                emailsPasted = "c"
+                tittlePasted = paste.find("a").text
+                linkPasted = paste.find("a")["href"]
+                datePasted = paste.find("td", {"class": "pasteDate"}).text
+                emailsPasted = paste.find("td", {"class": "text-right"}).text
+
                 pastesArray.append([tittlePasted,linkPasted, datePasted, emailsPasted])
 
-            print(resultsPastes)
-
-
-
-
-
-
-        # title = soup.findAll("div", {"class":"pwnedRow"})
-        # eliminamos el primer elemento q es inutil. El 1º es breaches/leaks y 2º pastes
-        # title.pop(0)
-        # print(title)
-
-        # pwnedSites = soup.find_all(id="pwnedSites")
-        # pastes = soup.select("div", id = "pastes")
-        # print(pwnedSites)
-        # print("_______________________")
-        #print(pastes)cl
-        #titleComment = title.find("h2").getText()
-        #print(titleComment)
-        # print(result[0])
-        # print(result[1])
-        # print("_____________________________________\n")
-        # print(result[2])
-        # print(result[3])
-        return "hi"
-
-Hp = HIBPScraping()
-print(asyncio.run(Hp.parseHTML("a@a.es")))
+        return breachesArray, pastesArray
