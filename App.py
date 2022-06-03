@@ -1,37 +1,37 @@
 import asyncio
 import os
 import sys
-from flask import Flask, redirect, url_for, render_template, request
+from flask import Flask, redirect, url_for, render_template
 from searchScripts.buscarPersona.darknet.darkScraping import AhmiaScraping
 from searchScripts.buscarPersona.phone.phoneSearch import phonebooksearch
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
-from searchScripts.buscarPersona.email.emailScraping import emailBreached, emailBreachedExpanded, emailPasted, pruebaIntel
+from searchScripts.buscarPersona.email.emailScraping import emailBreachedExpanded, emailPasted, pruebaIntel
 from searchScripts.buscarPersona.email.emailPhoneIHBP import HIBPScraping
 
-app = Flask(__name__)
+App = Flask(__name__)
 
 #Error que tiene la libreria de async_io para las versiones de python por debajo de la 3.9
 if sys.platform == "win32" and (3, 8, 0) <= sys.version_info < (3, 9, 0):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     
-@app.route("/")
-@app.route("/index.html")
+@App.route("/")
+@App.route("/index.html")
 def home():
     return render_template("index.html")
 
-@app.route("/about")
+@App.route("/about")
 def about():
     return render_template("about.html")
 
-@app.route("/info")
+@App.route("/info")
 def info():
     return render_template("info.html")
 
-@app.route("/buscarPersona")
+@App.route("/buscarPersona")
 def buscarPersona():
     return render_template("buscarPersona.html")    
 
-@app.route("/result", methods=["POST", "GET"])
+@App.route("/result", methods=["POST", "GET"])
 def result():
 
     if request.method == 'POST':
@@ -543,7 +543,8 @@ def result():
 #     return redirect(url_for("user", name="Admin!"))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+#    App.run(debug=True)
+    App.run()
 
 
 

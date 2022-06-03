@@ -1,1 +1,1 @@
-web: gunicorn FlaskTFG.App:App
+web: gunicorn App:App
