@@ -27,7 +27,7 @@ def about():
 def info():
     return render_template("info.html")
 
-@App.route("/buscarPerson")
+@App.route("/buscarPersonaa")
 def buscarPersona():
     return render_template("buscarPersona.html")    
 
