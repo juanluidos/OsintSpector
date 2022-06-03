@@ -7,6 +7,9 @@ from searchScripts.buscarPersona.phone.phoneSearch import phonebooksearch
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
 from searchScripts.buscarPersona.email.emailScraping import emailBreachedExpanded, emailPasted, pruebaIntel
 from searchScripts.buscarPersona.email.emailPhoneIHBP import HIBPScraping
+from subprocess import Popen, PIPE
+
+p = Popen([sys.executable, "-m", "playwright", "install"], stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
 App = Flask(__name__)
 
