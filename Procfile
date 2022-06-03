@@ -1,1 +1,1 @@
-web: gunicorn FlaskTFG:App
+web: gunicorn App:Appgit 
