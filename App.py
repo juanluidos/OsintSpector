@@ -5,8 +5,8 @@ from flask import Flask, redirect, url_for, render_template, request
 from searchScripts.buscarPersona.darknet.darkScraping import AhmiaScraping
 from searchScripts.buscarPersona.phone.phoneSearch import phonebooksearch
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
-from searchScripts.buscarPersona.emailPwned.emailScraping import emailBreached, emailBreachedExpanded, emailPasted, pruebaIntel
-from searchScripts.buscarPersona.emailPwned.emailPhoneIHBP import HIBPScraping
+from searchScripts.buscarPersona.email.emailScraping import emailBreached, emailBreachedExpanded, emailPasted, pruebaIntel
+from searchScripts.buscarPersona.email.emailPhoneIHBP import HIBPScraping
 
 app = Flask(__name__)
 

@@ -26,7 +26,7 @@ def usernameScrapping(username, inputfile):
     def web_call(location):
         try:
             # Make web request for that URL, timeout in X secs and don't verify SSL/TLS certs
-            resp = requests.get(location, headers=headers, timeout=30, verify=False)
+            resp = requests.get(location, headers=headers, timeout=20, verify=False)
         except requests.exceptions.Timeout:
             return f' !  ERROR: {location} CONNECTION TIME OUT. Try increasing the timeout delay.'
         except requests.exceptions.TooManyRedirects:
