@@ -1,7 +1,7 @@
 import asyncio
 import os
 import sys
-from flask import Flask, redirect, url_for, render_template
+from flask import Flask, redirect, url_for, render_template, request
 from searchScripts.buscarPersona.darknet.darkScraping import AhmiaScraping
 from searchScripts.buscarPersona.phone.phoneSearch import phonebooksearch
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
