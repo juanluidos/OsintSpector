@@ -13,5 +13,3 @@ bs4
 playwright
 playwright_stealth
 asyncio
-time
-sys
