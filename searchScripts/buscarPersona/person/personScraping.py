@@ -14,7 +14,7 @@ def randomUserAgent(filename):
 
 class INEScrapingName:
     async def run(self,p):
-        browser = await p.chromium.launch(slow_mo=100,headless=False)
+        browser = await p.chromium.launch(slow_mo=100)
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
             user_agent = userAgent
@@ -51,7 +51,7 @@ class INEScrapingName:
 
 class INEScrapingSurName:
     async def run(self,p):
-        browser = await p.chromium.launch(slow_mo=100,headless=False)
+        browser = await p.chromium.launch(slow_mo=100)
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
             user_agent = userAgent
