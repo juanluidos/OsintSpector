@@ -1,7 +1,21 @@
 <html>
 <body>
 
-    <p>Búsqueda para {{nombre}} con nickname {{nickname}}</p>
+    <p>Búsqueda para {{nombre}} {{apellidos}} con nickname {{nickname}}</p>
+
+    {% if nombre%}
+        {%if resultadosINEName is string%}
+        <p> El total de personas en toda España con el mismo nombre es menor de 20</p>
+        {%else%}
+        <p> El total de personas en toda España con el mismo nombre es de {{resultadosINEName[0]}} con una media de edad de {{resultadosINEName[1]}} años</p>
+        {%endif%}
+    {%endif %}
+
+    {% if apellidos%}
+        {%for apellido in resultadosINESurname%}
+            <p> El total de personas en toda España con el apellido {{apellido[0]}} como {{apellido[2]}} apellido es de: {{apellido[1]}} <p> </br>
+        {%endfor%}
+    {%endif %}
 
     {% if nickname %}
     <p> si había nickname es {{nickname}}</p>
@@ -15,8 +29,9 @@
     {% if email %}
 
     <p> si había email es {{email}}</p>
-    <p> los resultados son: {{resultadosPwnedEmail}}</p> </br>
-    <p> estos resultados leaked email son una lista de jsons, cada uno tiene propiedad name, title, domain, breachDate, addedDate modifieddate, pqncount, descirption</p>
+    <p> los resultados en IHBP son: {{resultadosPwnedEmail}}</p> </br>
+    <p> estos resultados de email IHBP son una lista de jsons, cada uno tiene propiedad name, title, domain, breachDate, addedDate modifieddate, pqncount, descirption</p> </br>
+    <p> los resultados en IntelX son: {{resultadosIntelxEmail}} </p>
 
 
     {% endif %}
@@ -28,15 +43,16 @@
     {%if phone %}
 
     <p> si había teléfono es {{phone}}</p>
-    <p> los resultados son: {{resultadosPwnedPhone}}</p> </br>
-    <p> estos resultados leaked email son una lista de jsons, cada uno tiene propiedad name, title, domain, breachDate, addedDate modifieddate, pqncount, descirption</p>
+    <p> los resultados en IHBP son: {{resultadosPwnedPhone}}</p> </br>
+    <p> estos resultados telefono IntelX son una lista de jsons, cada uno tiene propiedad name, title, domain, breachDate, addedDate modifieddate, pqncount, descirption</p> </br>
+    <p> los resultados en IntelX son: {{resultadosIntelxPhone}} </p>
 
     {% endif%}
     <!-- Poner cuando este bonito que no se aportó el phone-->
 
     {% if darknet %}
-    <p> los resultados darknet son: {{resultadoDarknet}} <p></br>
     <p> con nombre {{nombre}} y apellidos {{apellidos}} <p>
+    <p> los resultados darknet son: {{resultadoDarknet}} <p></br>
     {%endif%}
 
 </body>

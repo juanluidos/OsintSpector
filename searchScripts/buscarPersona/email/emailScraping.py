@@ -1,7 +1,6 @@
 import requests
 
 from utils.commonFunctions import randomUserAgent
-from utils.Intelx.intelexapi import intelx as intel
 def make_request(target,api_key, url):
 
     payload={}
@@ -81,11 +80,3 @@ def emailBreachedExpanded(target, api_key):
         
     print(f"Los sitios donde se leakearon el correo con información sensible fue:{all_found_sites}")
     return extendedInfo_sites
-
-def pruebaIntel(target):
-    intelx = intel()
-    search = intelx.search(target)
-    for record in search['records']:
-        print(f"Found media type {record['media']} in {record['bucket']}")
-    return search
-
