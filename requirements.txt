@@ -22,5 +22,4 @@ zipp==3.8.0
 urllib3
 requests
 flask
-threading
 google-api-python-client
