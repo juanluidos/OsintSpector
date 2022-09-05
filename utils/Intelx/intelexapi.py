@@ -12,7 +12,7 @@ from utils.commonFunctions import randomUserAgent
 class intelx:
 
 	# If an API key isn't supplied, it will use the free API key (limited functionality)
-	def __init__(self, key ="8134168d-053b-4042-adbe-19ab981d82aa" , ua=randomUserAgent("utils/userAgentsList.txt")):
+	def __init__(self, key = os.getenv("API_KEY_INTX") , ua=randomUserAgent("utils/userAgentsList.txt")):
 		"""
 		Initialize API by setting the API key.
 		"""

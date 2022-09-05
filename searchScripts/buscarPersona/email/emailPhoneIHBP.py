@@ -9,11 +9,18 @@ def randomUserAgent(filename):
     with open(filename) as f:
         lines = f.readlines()
     return random.choice(lines).replace("\n","")
+
+def randomProxyServer(filename):
+    with open(filename) as f:
+        lines = f.readlines()
+        if(len(lines)>1):
+            lines = lines[0:len(lines)-1]
+    return random.choice(lines).replace("\n","")
     
 class HIBPScraping:
 
     async def run(self,p):
-        browser = await p.chromium.launch(slow_mo=100)
+        browser = await p.chromium.launch(slow_mo=100, headless=False, proxy={"server": randomProxyServer("utils\Proxies\workingproxylistIHBP.txt")})
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
             user_agent = userAgent

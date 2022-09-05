@@ -12,9 +12,16 @@ def randomUserAgent(filename):
         lines = f.readlines()
     return random.choice(lines).replace("\n","")
 
+def randomProxyServer(filename):
+    with open(filename) as f:
+        lines = f.readlines()
+        if(len(lines)>1):
+            lines = lines[0:len(lines)-1]
+    return random.choice(lines).replace("\n","")
+
 class INEScrapingName:
     async def run(self,p):
-        browser = await p.chromium.launch(slow_mo=100, headless=True)
+        browser = await p.chromium.launch(slow_mo=100, headless=True, proxy={"server": randomProxyServer("utils\Proxies\workingproxylistINE.txt")})
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
             user_agent = userAgent
@@ -41,8 +48,8 @@ class INEScrapingName:
                 return soupNameNumber, False
     
     async def parseHTML(self, input):
-        result = await self.getINEHtmlName(input)
         print("Searching name frequency on INE")
+        result = await self.getINEHtmlName(input)
         if(result[1]):
             datos = result[0].findAll("span",{"class":"widgetResultTotal"})
             return datos[1].getText(), datos[2].getText()
@@ -51,7 +58,7 @@ class INEScrapingName:
 
 class INEScrapingSurName:
     async def run(self,p):
-        browser = await p.chromium.launch(slow_mo=100, headless=True)
+        browser = await p.chromium.launch(slow_mo=100, headless=True, proxy={"server": randomProxyServer("utils\Proxies\workingproxylistINE.txt")})
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
             user_agent = userAgent
@@ -82,9 +89,9 @@ class INEScrapingSurName:
             return resultList
 
     async def parseHTML(self, input):
+        print("Searching surname frequency on INE")
         result = await self.getINEHtmlSurName(input)
         resultList = []
-        print("Searching surname frequency on INE")
         for index, apellido in enumerate(result):
             if (index == 0):
                 if(apellido[1]):

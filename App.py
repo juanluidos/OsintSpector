@@ -10,6 +10,8 @@ from searchScripts.buscarPersona.email.emailPhoneIHBP import HIBPScraping
 from searchScripts.buscarPersona.person.personScraping import INEScrapingName, INEScrapingSurName
 from subprocess import Popen, PIPE
 
+from utils.Proxies.getProxies import runProxyScript, set_interval
+
 p = Popen([sys.executable, "-m", "playwright", "install"], stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
 App = Flask(__name__)
@@ -154,7 +156,7 @@ def result():
                                     return "nonombre noapellido nonickname email city darknet phone"
                                 else:
                                     #IntelX
-                                    intel = intelx()
+                                    intel = intelx(os.getenv("API_KEY_INTX"))
                                     resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
@@ -541,6 +543,7 @@ def result():
                                 else:
                                     return redirect('buscarPersona')
                                     #nonombre noapellido nonickname noemail nocity nodarknet nophone
+
             
 
         # elif nickname:
@@ -567,6 +570,9 @@ def result():
         return redirect("index.html")
         
 
+#Subprocess to refresh the working free proxies available
+set_interval(runProxyScript,30)
+
 # @app.route("/<name>")
 # def user(name):
 #     return f"Hello {name}!"
@@ -578,10 +584,6 @@ def result():
 if __name__ == "__main__":
 #    App.run(debug=True)
     App.run()
-
-
-
-
 
         # if phone:
         #     if nombre:
