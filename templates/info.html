@@ -1,0 +1,47 @@
+{%extends "base.html" %}
+
+{%block newHeadContent%}
+{%endblock%}
+
+{%block headingRow%}
+<div class="row gx-4 gx-lg-5 align-items-center my-5">
+    <div class="col-md-9">
+        <div class="col-md-12">
+            <h2 class="font-weight-light">¿De qué trata este proyecto?</h2>
+            <p style="text-justify">Esta herramienta consiste en recopilar información pública de internet sobre cualquier persona dada una información previa que se sepa sobre ella.
+                Existen dos formularios distintos, búsqueda de información a través de la web y un análisis de su Twitter</p>
+            <p style="text-justify"> Para el primer caso, en el formulario se pregunta tanto por su nombre, apellidos, ciudad, nickname, correo electrónico y teléfono; dando también la opción de si quieres añadir información encontrada en la Darknet. Obviamente no es obligatorio rellenar ninguna casilla, son todas opcionales, dando a interpretar de que se rellene con la información previa que se sepa sobre el objetivo. No cabe decir de que cuanta más información se aporte más completo será el informe. </p>
+            <p style="text-justify"> En dicho informe los resultados se englomerarán en distintas secciones, habrá una sección por casilla rellenada en el formulario previamente, excepto la tríada Nombre-Apellidos-Ciudad que irán juntas como una. </p>
+        </p>
+
+            <p style="text-justify">Para el segundo caso, solo hay que añadir su <i>@username</i>, la herramienta aportará información sensible a base de sus tweets e info añadida a su cuenta.</p>
+        </div>
+    </div>
+    <div class="col-md-3"><a href="https://github.com/juanluidos"><img class="img-fluid rounded mb-4 mb-lg-0" src="static/assets/detective.png" alt="Dibujo de un detective" /></a>
+    </div>
+</div>
+{%endblock%}
+
+{%block callToAction%}
+<div class="card text-white bg-secondary my-4 py-2 text-center">
+    <div class="card-body"><p class="text-white m-0"> Muchas gracias por usar Osintspector, para cualquier sugerencia/mejora/reporte abajo tenéis mi contacto.</p></div>
+</div>
+{%endblock%}
+
+{%block contentRow%}
+
+<!-- Content Row-->
+<div class="row gx-4 gx-lg-5 align-items-center my-5">
+    <div class="col-md-3"><a href="https://www.us.es"><img class="img-fluid rounded mb-4 mb-lg-0" src="static/assets/detective2.png" alt="Logo de la Universidad de Sevilla" /></a>
+    </div>
+    <div class="col-md-9">
+        <div class="col-md-12">
+            <h2 class="font-weight-light">¿Es segura esta búsqueda?</h2>
+            <p style="text-align:justify">La búsqueda es segura, el proceso está desarollado para que no infrinja ninguna ley, política o términos de uso, es totalmente legal. Además de que la búsqueda es anónima y no se almacena nada de información sobre la persona que lo realiza. 
+            </p>
+
+        </div>
+    </div>
+</div>
+
+{%endblock%}

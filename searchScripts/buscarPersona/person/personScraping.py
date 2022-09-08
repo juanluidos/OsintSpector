@@ -1,9 +1,12 @@
-import asyncio
+import os
 import random
+import socket
 import time
+import requests
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 from bs4 import BeautifulSoup
+from googleapiclient.discovery import build
 
 #from utils.commonFunctions import randomUserAgent
 
@@ -17,7 +20,10 @@ def randomProxyServer(filename):
         lines = f.readlines()
         if(len(lines)>1):
             lines = lines[0:len(lines)-1]
-    return random.choice(lines).replace("\n","")
+        #Si no existe ningún proxy disponible por desgracia tendríamos q usar nuestra IP (solo me ha ocurrido una vez durante todo el desarrollo, pero por si acaso)
+        elif(len(lines)==0):
+            return socket.gethostbyname(socket.gethostname()) 
+    return random.choice(lines).rstrip("\n")
 
 class INEScrapingName:
     async def run(self,p):
@@ -106,3 +112,32 @@ class INEScrapingSurName:
                 else:
                     resultList.append((datos[0].getText(),"menor de 5","segundo"))
         return resultList
+
+my_api_key = ""
+my_cse_id = ""
+query = '""'
+start=1
+
+# def google_search(search_term, api_key, cse_id, **kwargs):
+#     service = build("customsearch", "v1", developerKey=api_key)
+#     res = service.cse().list(q=search_term, cx=cse_id, **kwargs).execute()
+#     return res
+
+# print(google_search(query,my_api_key,my_cse_id))
+
+# url = f'https://www.googleapis.com/customsearch/v1?key={my_api_key}&cx={my_cse_id}&q={query}'
+
+# print(requests.get(url).json())
+
+#http://jsonviewer.stack.hu/
+
+#Issue de google searchs api comparado con las busquedas reales desde 2008
+#https://code.google.com/archive/p/google-ajax-apis/issues/43
+
+#lo mismo le pasa a duckduckgo
+#https://duckduckgo.com/api
+
+#posibles salvavidas
+
+#https://www.scaleserp.com/?gclid=Cj0KCQjw39uYBhCLARIsAD_SzMTj1eRSwq3l24yIHh3_zCp3abFgY4T3a1Rn0KRtfPu5FVLd5CVXSNgaAihhEALw_wcB
+#https://console.apify.com/actors/nFJndFXA5zjCTuudP/runs/ALjTUc4YM5LQffxVU#output

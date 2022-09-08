@@ -1,6 +1,7 @@
+#USANDO LA KEY DE IHBP, DEPRECATED
 import requests
-
 from utils.commonFunctions import randomUserAgent
+
 def make_request(target,api_key, url):
 
     payload={}
