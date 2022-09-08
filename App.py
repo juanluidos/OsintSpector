@@ -5,8 +5,8 @@ from flask import Flask, redirect, url_for, render_template, request
 from utils.Intelx.intelexapi import intelx
 from searchScripts.buscarPersona.darknet.darkScraping import AhmiaScraping
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
-from searchScripts.buscarPersona.email.emailScraping import emailBreachedExpanded, emailPasted
-from searchScripts.buscarPersona.email.emailPhoneIHBP import HIBPScraping
+from searchScripts.buscarPersona.emailPhone.emailScraping import emailBreachedExpanded, emailPasted
+from searchScripts.buscarPersona.emailPhone.emailPhoneIHBP import HIBPScraping
 from searchScripts.buscarPersona.person.personScraping import INEScrapingName, INEScrapingSurName
 from subprocess import Popen, PIPE
 
@@ -385,11 +385,19 @@ def result():
                                     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
                                     #"nonombre noapellido nickname email city nodarknet phone" TODO FALTA CITY
                                 else:
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-                                    hp = HIBPScraping()
-                                    resultadosPwnedPhone = asyncio.run(hp.parseHTML(phone))
-                                    resultadosPwnedEmail = asyncio.run(hp.parseHTML(email))
-                                    return render_template("resultadosBusqueda.html",nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosPwnedEmail = resultadosPwnedEmail, phone = phone,  resultadosPwnedPhone = resultadosPwnedPhone)
+                                    # #Username
+                                    # resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    # #IntelX
+                                    intel = intelx(os.getenv("API_KEY_INTX"))
+                                    # resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+
+                                    # #HIBPwned Scraping
+                                    # hp = HIBPScraping()
+                                    # resultadosPwnedPhone = asyncio.run(hp.parseHTML(phone))
+                                    # resultadosPwnedEmail = asyncio.run(hp.parseHTML(email))
+
+                                    return render_template("resultadosBusqueda.html", email=email,nickname=nickname, phone=phone,resultadosIntelxEmail=resultadosIntelxEmail)
                                     #"nonombre noapellido nickname email nocity nodarknet phone"
                             else:
                                 if city:
@@ -571,7 +579,7 @@ def result():
         
 
 #Subprocess to refresh the working free proxies available
-set_interval(runProxyScript,30)
+#set_interval(runProxyScript,120)
 
 # @app.route("/<name>")
 # def user(name):
@@ -582,7 +590,7 @@ set_interval(runProxyScript,30)
 #     return redirect(url_for("user", name="Admin!"))
 
 if __name__ == "__main__":
-#    App.run(debug=True)
+    # App.run(debug=True)
     App.run()
 
         # if phone:

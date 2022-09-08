@@ -1,10 +1,10 @@
-import asyncio
 import random
+import socket
 import time
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 from bs4 import BeautifulSoup
-# from utils.commonFunctions import randomUserAgent
+from utils.commonFunctions import randomUserAgent
 def randomUserAgent(filename):
     with open(filename) as f:
         lines = f.readlines()
@@ -15,12 +15,17 @@ def randomProxyServer(filename):
         lines = f.readlines()
         if(len(lines)>1):
             lines = lines[0:len(lines)-1]
-    return random.choice(lines).replace("\n","")
+        #Si no existe ningún proxy disponible por desgracia tendríamos q usar nuestra IP (solo me ha ocurrido una vez durante todo el desarrollo, pero por si acaso)
+        elif(len(lines)==0):
+            return socket.gethostbyname(socket.gethostname()) 
+    return random.choice(lines).rstrip("\n")
     
 class HIBPScraping:
+    def __init__(self):
+        self.randomProxy = randomProxyServer("utils/Proxies/workingproxylistIHBP.txt")
 
     async def run(self,p):
-        browser = await p.chromium.launch(slow_mo=100, headless=False, proxy={"server": randomProxyServer("utils\Proxies\workingproxylistIHBP.txt")})
+        browser = await p.chromium.launch(slow_mo=100, headless=False, proxy={"server": self.randomProxy})
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
             user_agent = userAgent

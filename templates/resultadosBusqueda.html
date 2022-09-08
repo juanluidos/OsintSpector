@@ -1,6 +1,18 @@
-<html>
-<body>
+{%extends "base.html" %}
 
+{%block newHeadContent%}
+{%endblock%}
+
+{%block headingRow%}
+<div class="row gx-4 gx-lg-5 align-items-center my-5">
+    <div class="col-lg-12">
+        <h2 class="font-weight-light">Resultados de la Búsqueda</h2>
+        <p style="text-justify">Pues actualmente el desarrollo de esta pequeña aplicación está llevada por una persona Los resultados se englomerarán en distintas secciones, habrá una sección por casilla rellenada en el formulario previamente.</p>
+        <p style="text-justify">El informe se genera de forma automática, la búsqueda será anónima y no se almacenará ninguna información sobre ésta</p></br>
+    </div>
+</div>
+{%endblock%}
+{%block contentRow%}
     <p>Búsqueda para {{nombre}} {{apellidos}} con nickname {{nickname}}</p>
 
     {% if nombre%}
@@ -54,7 +66,4 @@
     <p> con nombre {{nombre}} y apellidos {{apellidos}} <p>
     <p> los resultados darknet son: {{resultadoDarknet}} <p></br>
     {%endif%}
-
-</body>
-
-</html>
+{%endblock%}
