@@ -25,7 +25,7 @@ def usernameScrapping(username, inputfile):
     # Realiza requests a dichas webs y comprueba su disponibilidad. Se añade un timeout para evitar muchos tiempos de espera muertos y no verifica certificados TLS/SSL
     def web_call(location):
         try:
-
+            #verify=False ignora la verificacion del certificado SSL de la página
             resp = requests.get(location, headers=headers, timeout=20, verify=False)
         except requests.exceptions.Timeout:
             return f' !  ERROR: {location} CONNECTION TIME OUT. Try increasing the timeout delay.'
@@ -109,7 +109,7 @@ def usernameScrapping(username, inputfile):
 
     # Start threads
     threads = []
-    #Se usan threads para mejorar el rendimiento mediante concurrencia
+    #Se usan threads para mejorar el rendimiento mediante paralelismo
     for site_ in data['sites']:
         #Cada elemento de la parte de site del JSON se creará su propio hilo, añadiendo los argumentos necesarios a este, que serán tanto el elemento propio del JSON como el username que estamos buscando
         x = threading.Thread(target=check_site, args=(site_, username), daemon=True)

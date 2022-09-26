@@ -7,7 +7,7 @@ from searchScripts.buscarPersona.darknet.darkScraping import AhmiaScraping
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
 from searchScripts.buscarPersona.emailPhone.emailScraping import emailBreachedExpanded, emailPasted
 from searchScripts.buscarPersona.emailPhone.emailPhoneIHBP import HIBPScraping
-from searchScripts.buscarPersona.person.personScraping import INEScrapingName, INEScrapingSurName
+from searchScripts.buscarPersona.person.personScraping import GoogleScrapingPerson, INEScrapingName, INEScrapingSurName
 from subprocess import Popen, PIPE
 
 from utils.Proxies.getProxies import runProxyScript, set_interval
@@ -446,7 +446,18 @@ def result():
                                     return "nombre apellido nonickname email nocity nodarknet nophone"
                             else:
                                 if city:
-                                    return "nombre apellido nonickname noemail city nodarknet nophone"
+                                    # return "nombre apellido nonickname noemail city nodarknet nophone"
+                                    #INE
+                                    ine = INEScrapingName()
+                                    resultadosINEName = asyncio.run(ine.parseHTML(nombre))
+
+                                    apellid = INEScrapingSurName()
+                                    resultadosINESurname = asyncio.run(apellid.parseHTML(apellidos))
+
+                                    #Google Custom Search
+                                    hp = GoogleScrapingPerson()
+                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    return render_template("resultadosBusqueda.html",nombre=nombre, apellidos = apellidos, city=city, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch)
                                 else:
                                     hp = INEScrapingName()
                                     resultadosINEName = asyncio.run(hp.parseHTML(nombre))
@@ -579,7 +590,7 @@ def result():
         
 
 #Subprocess to refresh the working free proxies available
-#set_interval(runProxyScript,120)
+set_interval(runProxyScript,120)
 
 # @app.route("/<name>")
 # def user(name):
@@ -590,235 +601,6 @@ def result():
 #     return redirect(url_for("user", name="Admin!"))
 
 if __name__ == "__main__":
-    # App.run(debug=True)
-    App.run()
-
-        # if phone:
-        #     if nombre:
-        #         if apellidos:
-        #             if nickname:
-        #                 if email:
-        #                     if city:
-        #                         return "nombre apellido nickname email city darknet phone"
-        #                     else:
-        #                         return "nombre apellido nickname email nocity darknet phone"
-        #                 else:
-        #                     if city:
-        #                         return "nombre apellido nickname noemail city darknet phone"
-        #                     else:
-        #                         return "nombre apellido nickname noemail nocity darknet phone"
-        #             else:
-        #                 if email:
-        #                     if city:
-        #                         return "nombre apellido nonickname email city darknet phone"
-        #                     else:
-        #                         return "nombre apellido nonickname email nocity darknet phone"
-        #                 else:
-        #                     if city:
-        #                         return "nombre apellido nonickname noemail city darknet phone"
-        #                     else:
-        #                         return "nombre apellido nonickname noemail nocity darknet phone"
-        #         else:
-        #             if nickname:
-        #                 if email:
-        #                     if city:
-        #                         return "nombre noapellido nickname email city darknet phone"
-        #                     else:
-        #                         return "nombre noapellido nickname email nocity darknet phone"
-        #                 else:
-        #                     if city:
-        #                         return "nombre noapellido nickname noemail city darknet phone"
-        #                     else:
-        #                         return "nombre noapellido nickname noemail nocity darknet phone"
-        #             else:
-        #                 if email:
-        #                     if city:
-        #                         return "nombre noapellido nonickname email city darknet phone"
-        #                     else:
-        #                         return "nombre noapellido nonickname email nocity darknet phone"
-        #                 else:
-        #                     if city:
-        #                         return "nombre noapellido nonickname noemail city darknet phone"
-        #                     else:
-        #                         return "nombre noapellido nonickname noemail nocity darknet phone"
-        #     else:
-        #         if apellidos:
-        #             if nickname:
-        #                 if email:
-        #                     if city:
-        #                         return "nonombre apellido nickname email city darknet phone"
-        #                     else:
-        #                         return "nonombre apellido nickname email nocity darknet phone"
-        #                 else:
-        #                     if city:
-        #                         return "nonombre apellido nickname noemail city darknet phone"
-        #                     else:
-        #                         return "nonombre apellido nickname noemail nocity darknet phone"
-        #             else:
-        #                 if email:
-        #                     if city:
-        #                         return "nonombre apellido nonickname email city darknet phone"
-        #                     else:
-        #                         return "nonombre apellido nonickname email nocity darknet phone"
-        #                 else:
-        #                     if city:
-        #                         return "nonombre apellido nonickname noemail city darknet phone"
-        #                     else:
-        #                         return "nonombre apellido nonickname noemail nocity darknet phone"
-        #         else:
-        #             if nickname:
-        #                 if email:
-        #                     if city:
-        #                         resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-        #                         resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosIntelx = emailOrPhoneSearch(email)
-        #                         return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail, resultadosIntelx = resultadosIntelx)
-        #                         #"nonombre noapellido nickname email city darknet phone" TODO FALTA CITY
-        #                     else:
-        #                         resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-        #                         resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosIntelx = emailOrPhoneSearch(email)
-        #                         return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail, resultadosIntelx = resultadosIntelx)
-        #                         #"nonombre noapellido nickname email nocity darknet phone"
-        #                 else:
-        #                     if city:
-        #                         return "nonombre noapellido nickname noemail city darknet phone"
-        #                     else:
-        #                         resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-        #                         return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname) 
-        #                         #nonombre noapellido nickname noemail nocity darknet phone
-        #             else:
-        #                 if email:
-        #                     if city:
-        #                         return "nonombre noapellido nonickname email city darknet phone"
-        #                     else:
-        #                         resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosIntelx = emailOrPhoneSearch(email)
-        #                         return render_template("resultadosBusqueda.html",email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail, resultadosIntelx = resultadosIntelx)
-        #                         #"nonombre noapellido nonickname email nocity darknet phone"
-        #                 else:
-        #                     if city:
-        #                         return "nonombre noapellido nonickname noemail city"
-        #                     else:
-        #                         resultadosIntelx = phonebooksearch(phone)
-        #                         return render_template("resultadosBusqueda.html",phone=phone, resultadosIntelx = resultadosIntelx)
-        #                         #return redirect('buscarPersona') TODO
-        #                         #"nonombre noapellido nonickname noemail nocity darknet phone"
-        # else:
-        #     if nombre:
-        #         if apellidos:
-        #             if nickname:
-        #                 if email:
-        #                     if city:
-        #                         return "nombre apellido nickname email city darknet nophone"
-        #                     else:
-        #                         return "nombre apellido nickname email nocity darknet nophone"
-        #                 else:
-        #                     if city:
-        #                         return "nombre apellido nickname noemail city darknet nophone"
-        #                     else:
-        #                         return "nombre apellido nickname noemail nocity darknet nophone"
-        #             else:
-        #                 if email:
-        #                     if city:
-        #                         return "nombre apellido nonickname email city darknet nophone"
-        #                     else:
-        #                         return "nombre apellido nonickname email nocity darknet nophone"
-        #                 else:
-        #                     if city:
-        #                         return "nombre apellido nonickname noemail city darknet nophone"
-        #                     else:
-        #                         return "nombre apellido nonickname noemail nocity darknet nophone"
-        #         else:
-        #             if nickname:
-        #                 if email:
-        #                     if city:
-        #                         return "nombre noapellido nickname email city darknet nophone"
-        #                     else:
-        #                         return "nombre noapellido nickname email nocity darknet nophone"
-        #                 else:
-        #                     if city:
-        #                         return "nombre noapellido nickname noemail city darknet nophone"
-        #                     else:
-        #                         return "nombre noapellido nickname noemail nocity darknet nophone"
-        #             else:
-        #                 if email:
-        #                     if city:
-        #                         return "nombre noapellido nonickname email city darknet nophone"
-        #                     else:
-        #                         return "nombre noapellido nonickname email nocity darknet nophone"
-        #                 else:
-        #                     if city:
-        #                         return "nombre noapellido nonickname noemail city darknet nophone"
-        #                     else:
-        #                         return "nombre noapellido nonickname noemail nocity darknet nophone"
-        #     else:
-        #         if apellidos:
-        #             if nickname:
-        #                 if email:
-        #                     if city:
-        #                         return "nonombre apellido nickname email city darknet nophone"
-        #                     else:
-        #                         return "nonombre apellido nickname email nocity darknet nophone"
-        #                 else:
-        #                     if city:
-        #                         return "nonombre apellido nickname noemail city darknet nophone"
-        #                     else:
-        #                         return "nonombre apellido nickname noemail nocity darknet nophone"
-        #             else:
-        #                 if email:
-        #                     if city:
-        #                         return "nonombre apellido nonickname email city darknet nophone"
-        #                     else:
-        #                         return "nonombre apellido nonickname email nocity darknet nophone"
-        #                 else:
-        #                     if city:
-        #                         return "nonombre apellido nonickname noemail city darknet nophone"
-        #                     else:
-        #                         return "nonombre apellido nonickname noemail nocity darknet nophone"
-        #         else:
-        #             if nickname:
-        #                 if email:
-        #                     if city:
-        #                         resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-        #                         resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosIntelx = emailOrPhoneSearch(email)
-        #                         return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail, resultadosIntelx = resultadosIntelx)
-        #                         #"nonombre noapellido nickname email city darknet nophone" TODO FALTA CITY
-        #                     else:
-        #                         resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-        #                         resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosIntelx = emailOrPhoneSearch(email)
-        #                         return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail, resultadosIntelx = resultadosIntelx)
-        #                         #"nonombre noapellido nickname email nocity darknet nophone"
-        #                 else:
-        #                     if city:
-        #                         return "nonombre noapellido nickname noemail city"
-        #                     else:
-        #                         resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-        #                         return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname) 
-        #                         #nonombre noapellido nickname noemail nocity darknet nophone
-        #             else:
-        #                 if email:
-        #                     if city:
-        #                         return "nonombre noapellido nonickname email city"
-        #                     else:
-        #                         resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
-        #                         resultadosIntelx = emailOrPhoneSearch(email)
-        #                         return render_template("resultadosBusqueda.html",email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail, resultadosIntelx = resultadosIntelx)
-        #                         #"nonombre noapellido nonickname email nocity darknet nophone"
-        #                 else:
-        #                     if city:
-        #                         return "nonombre noapellido nonickname noemail city"
-        #                     else:
-        #                         # resultadosIntelx = phonebooksearch(phone)
-        #                         # return render_template("resultadosBusqueda.html",phone=phone, resultadosIntelx = resultadosIntelx)
-        #                         return redirect('buscarPersona')
-        #                         #"nonombre noapellido nonickname noemail nocity darknet nophone"
+    App.run(debug=True)
+    # App.run()
 

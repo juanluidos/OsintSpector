@@ -1,3 +1,4 @@
+from pickle import FALSE
 import random
 import socket
 import time
@@ -17,15 +18,18 @@ def randomProxyServer(filename):
             lines = lines[0:len(lines)-1]
         #Si no existe ningún proxy disponible por desgracia tendríamos q usar nuestra IP (solo me ha ocurrido una vez durante todo el desarrollo, pero por si acaso)
         elif(len(lines)==0):
-            return socket.gethostbyname(socket.gethostname()) 
+            return None
     return random.choice(lines).rstrip("\n")
     
 class HIBPScraping:
-    def __init__(self):
-        self.randomProxy = randomProxyServer("utils/Proxies/workingproxylistIHBP.txt")
-
     async def run(self,p):
-        browser = await p.chromium.launch(slow_mo=100, headless=False, proxy={"server": self.randomProxy})
+        proxy = randomProxyServer("utils\Proxies\workingproxylistHIBP.txt")
+        if(proxy) != None:
+            browser = await p.chromium.launch(slow_mo=100, headless=False, proxy={"server": proxy })
+            print(f"Scraping HIBP with proxy: {proxy}")
+        else:
+            browser = await p.chromium.launch(slow_mo=100, headless=False)
+            print(f"Scraping HIBP with no proxy available")   
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
             user_agent = userAgent

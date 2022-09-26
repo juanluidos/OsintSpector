@@ -24,7 +24,8 @@ def set_interval(func, sec):
     return t
 
 workingListINE = []
-workingListIHBP = []
+workingListHIBP = []
+
 #get the list of free proxies
 def getProxies():
     r = requests.get('https://free-proxy-list.net/')
@@ -32,11 +33,9 @@ def getProxies():
     table = soup.find('tbody')
     proxies = []
     for row in table:
-#        if row.find_all('td')[4].text =='elite proxy':
+       if row.find_all('td')[4].text =='elite proxy' or row.find_all('td')[4].text =='transparent':
         proxy = ':'.join([row.find_all('td')[0].text, row.find_all('td')[1].text])
         proxies.append(proxy)
-        # else:
-        #     pass
     return proxies
 
 def extractINE(proxy):
@@ -46,28 +45,33 @@ def extractINE(proxy):
         workingListINE.append(proxy)
     except requests.ConnectionError as err:
         pass
-    return proxy
+    return workingListINE
 
 def extractIHBP(proxy):
     headers = {'User-Agent': randomUserAgent("utils/userAgentsList.txt")}
     try:
-        requests.get("https://haveibeenpwned.com/", headers=headers, proxies={'http' : proxy,'https': proxy}, timeout=1)
-        workingListIHBP.append(proxy)
-    except requests.ConnectionError as err:
+        r = requests.get("https://haveibeenpwned.com/", headers=headers, proxies={'http' : proxy,'https': proxy}, timeout=1)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        #Si el titulo contiene Just a moment significa que han pillado q es un posible bot usando el proxy
+        if(soup.title.string == "Just a moment..."):
+            raise Exception("Err")
+        print(soup)
+        workingListHIBP.append(proxy)
+    except requests.exceptions.RequestException as err:
         pass
-    return proxy
+    return workingListHIBP
 proxylist = getProxies()
 
 with concurrent.futures.ThreadPoolExecutor() as executor:
         executor.map(extractINE, proxylist)
         executor.map(extractIHBP, proxylist)
 
-with open("utils\Proxies\workingproxylistIHBP.txt", "w") as file:
-    for proxy in workingListIHBP:
+with open("utils\Proxies\workingproxylistHIBP.txt", "w") as file:
+    for proxy in workingListHIBP:
         file.write(proxy + "\n")
     file.close()
 
-with open("utils\Proxies\workingproxylistIHBP.txt", "w") as file:
+with open("utils\Proxies\workingproxylistINE.txt", "w") as file:
     for proxy in workingListINE:
         file.write(proxy + "\n")
     file.close()

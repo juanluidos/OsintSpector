@@ -1,13 +1,13 @@
 import os
 import random
-import socket
 import time
 import requests
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 from googleapiclient.discovery import build
-
+load_dotenv()
 #from utils.commonFunctions import randomUserAgent
 
 def randomUserAgent(filename):
@@ -22,12 +22,18 @@ def randomProxyServer(filename):
             lines = lines[0:len(lines)-1]
         #Si no existe ningún proxy disponible por desgracia tendríamos q usar nuestra IP (solo me ha ocurrido una vez durante todo el desarrollo, pero por si acaso)
         elif(len(lines)==0):
-            return socket.gethostbyname(socket.gethostname()) 
+            return None
     return random.choice(lines).rstrip("\n")
 
 class INEScrapingName:
     async def run(self,p):
-        browser = await p.chromium.launch(slow_mo=100, headless=True, proxy={"server": randomProxyServer("utils\Proxies\workingproxylistINE.txt")})
+        proxy = randomProxyServer("utils\Proxies\workingproxylistINE.txt")
+        if(proxy) != None:
+            browser = await p.chromium.launch(slow_mo=100, headless=True, proxy={"server": proxy })
+            print(f"Scraping INE name with proxy: {proxy}")
+        else:
+            browser = await p.chromium.launch(slow_mo=100, headless=True)
+            print(f"Scraping INE name with no proxy available")
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
             user_agent = userAgent
@@ -54,7 +60,6 @@ class INEScrapingName:
                 return soupNameNumber, False
     
     async def parseHTML(self, input):
-        print("Searching name frequency on INE")
         result = await self.getINEHtmlName(input)
         if(result[1]):
             datos = result[0].findAll("span",{"class":"widgetResultTotal"})
@@ -64,7 +69,13 @@ class INEScrapingName:
 
 class INEScrapingSurName:
     async def run(self,p):
-        browser = await p.chromium.launch(slow_mo=100, headless=True, proxy={"server": randomProxyServer("utils\Proxies\workingproxylistINE.txt")})
+        proxy = randomProxyServer("utils\Proxies\workingproxylistINE.txt")
+        if(proxy) != None:
+            browser = await p.chromium.launch(slow_mo=100, headless=True, proxy={"server": proxy })
+            print(f"Scraping INE surname with proxy: {proxy}")
+        else:
+            browser = await p.chromium.launch(slow_mo=100, headless=True)
+            print(f"Scraping INE surname with no proxy available")        
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
             user_agent = userAgent
@@ -95,7 +106,6 @@ class INEScrapingSurName:
             return resultList
 
     async def parseHTML(self, input):
-        print("Searching surname frequency on INE")
         result = await self.getINEHtmlSurName(input)
         resultList = []
         for index, apellido in enumerate(result):
@@ -113,10 +123,10 @@ class INEScrapingSurName:
                     resultList.append((datos[0].getText(),"menor de 5","segundo"))
         return resultList
 
-my_api_key = ""
-my_cse_id = ""
-query = '""'
-start=1
+# my_api_key = os.getenv("API_KEY_GOOGLE")
+# my_cse_id = ""
+# query = '""'
+# start=1
 
 # def google_search(search_term, api_key, cse_id, **kwargs):
 #     service = build("customsearch", "v1", developerKey=api_key)
@@ -138,6 +148,103 @@ start=1
 #https://duckduckgo.com/api
 
 #posibles salvavidas
-
-#https://www.scaleserp.com/?gclid=Cj0KCQjw39uYBhCLARIsAD_SzMTj1eRSwq3l24yIHh3_zCp3abFgY4T3a1Rn0KRtfPu5FVLd5CVXSNgaAihhEALw_wcB
+#No me gusta mucho los resultados que pone
 #https://console.apify.com/actors/nFJndFXA5zjCTuudP/runs/ALjTUc4YM5LQffxVU#output
+#Prefiero mucho más la puesta en escena de los resultados que da esta API, buena estructura que puede anidarse bien.
+#https://www.scaleserp.com/?gclid=Cj0KCQjw39uYBhCLARIsAD_SzMTj1eRSwq3l24yIHh3_zCp3abFgY4T3a1Rn0KRtfPu5FVLd5CVXSNgaAihhEALw_wcB https://app.scaleserp.com/playground
+
+# set up the request parameters
+
+class GoogleScrapingPerson():
+    def __init__(self, key = os.getenv("API_SERP"), ua = randomUserAgent("utils/userAgentsList.txt")):
+        self.api = key
+        self.user_agent = ua
+        self.params = {
+            'api_key': os.getenv('API_SERP'),
+            'nfpr': 1,
+            'q':'',
+            'max_page': '2',
+            'location': ''
+            }
+        self.headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+                'User-Agent': self.user_agent
+            }
+        # print(self.params)
+        # print(json.dumps(api_result.json()))
+    def getDataNameSurname(self, name="",surname="", city=""):
+        if(name != "" and surname != ""):
+            self.params["q"] = f'"{name} {surname}"'
+
+        elif(name != ""):
+            self.params["q"] = f'"{name}"'
+
+        elif(surname != ""):
+            self.params["q"] = f'"{surname}"'
+
+        if(city != ""):
+            self.params["location"] = f'"{city}"'
+
+        api_result = requests.get('https://api.scaleserp.com/search', self.params, headers=self.headers)
+        results = api_result.json()
+        if results["organic_results"]:
+            return results["organic_results"]
+        else:
+            return []
+
+    def getDataSurnameName(self, name="",surname="", city=""):
+        if(name != "" and surname != ""):
+            self.params["q"] = f'"{surname} {name}"'
+
+        elif(name != ""):
+            self.params["q"] = f'"{name}"'
+
+        elif(surname != ""):
+            self.params["q"] = f'"{surname}"'
+
+        if(city != ""):
+            self.params["location"] = f'"{city}"'
+
+        api_result = requests.get('https://api.scaleserp.com/search', self.params, headers=self.headers)
+        results = api_result.json()
+        #Comprobamos si exsiten o no resultados
+        try:
+            results["organic_results"]
+        except:
+            return []
+        else:
+            return results["organic_results"]
+
+    def parseData(self, name="", surname="", city=""):
+        #Estructura de los datos:
+        #organicresults
+        #[[dominio, link, titulo],....]
+        searchResultsNameSurname = []
+        searchResultsSurnameName = []
+        rawDataNameSurname = self.getDataNameSurname(name,surname,city)
+        rawDataSurnameName = self.getDataSurnameName(name,surname,city)
+
+        for element in rawDataNameSurname:
+                searchResultsNameSurname.append([element["domain"], element["link"] ,element["title"]])
+        for element in rawDataSurnameName:
+                searchResultsSurnameName.append([element["domain"], element["link"] ,element["title"]])
+        #merge 2 list removing duplicates values
+        searchResultsNameSurname.extend(x for x in searchResultsSurnameName if x not in searchResultsNameSurname)
+        return searchResultsNameSurname
+
+
+
+# params = {
+# 'api_key': os.getenv('API_SERP'),
+#   'q': '"Eric Andrés Obaya"',
+#   'nfpr': 1,
+#   'filter': 0,
+#    'location': 'Asturias,Spain'
+# }
+
+# # make the http GET request to Scale SERP
+# api_result = requests.get('https://api.scaleserp.com/search', params)
+
+# # print the JSON response from Scale SERP
+# print(json.dumps(api_result.json()))

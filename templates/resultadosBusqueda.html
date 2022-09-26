@@ -14,21 +14,31 @@
 {%endblock%}
 {%block contentRow%}
     <p>Búsqueda para {{nombre}} {{apellidos}} con nickname {{nickname}}</p>
-
+    {#INE#}
     {% if nombre%}
         {%if resultadosINEName is string%}
         <p> El total de personas en toda España con el mismo nombre es menor de 20</p>
         {%else%}
         <p> El total de personas en toda España con el mismo nombre es de {{resultadosINEName[0]}} con una media de edad de {{resultadosINEName[1]}} años</p>
         {%endif%}
+        </br>
     {%endif %}
 
     {% if apellidos%}
         {%for apellido in resultadosINESurname%}
-            <p> El total de personas en toda España con el apellido {{apellido[0]}} como {{apellido[2]}} apellido es de: {{apellido[1]}} <p> </br>
+            <p> El total de personas en toda España con el apellido {{apellido[0]}} como {{apellido[2]}} apellido es de: {{apellido[1]}} </p>
         {%endfor%}
     {%endif %}
 
+    {#Google Search Custom#}
+    {% if nombre or apellidos%}
+    <p> Hay información de {{nombre}} {{apellidos}}, dichos resultados son:</p>
+        {%for elemento in resultadosGoogleSearch%}
+            <p> En el dominio {{elemento[0]}} con link <a href={{elemento[1]}}>{{elemento[1]}}</a> </p>
+            <p>con el título {{elemento[2]}}</p>
+        {%endfor%}
+    {%endif%}
+    {#Nickname#}
     {% if nickname %}
     <p> si había nickname es {{nickname}}</p>
     <p> los resultados son: {{resultadoNickname}}</p> </br>
