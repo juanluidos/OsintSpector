@@ -37,6 +37,10 @@ def info():
 def buscarPersona():
     return render_template("buscarPersona.html")    
 
+@App.route("/buscar_Persona_Twitter")
+def buscarPersonaTwitter():
+    return render_template("buscarPersonaTwitter.html")    
+
 @App.route("/result", methods=["POST", "GET"])
 def result():
 
@@ -156,7 +160,7 @@ def result():
                                     return "nonombre noapellido nonickname email city darknet phone"
                                 else:
                                     #IntelX
-                                    intel = intelx(os.getenv("API_KEY_INTX"))
+                                    intel = intelx()
                                     resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
@@ -385,19 +389,19 @@ def result():
                                     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
                                     #"nonombre noapellido nickname email city nodarknet phone" TODO FALTA CITY
                                 else:
-                                    # #Username
-                                    # resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-                                    # #IntelX
-                                    intel = intelx(os.getenv("API_KEY_INTX"))
+                                    #Username
+                                    resultadoNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    #IntelX
+                                    # intel = intelx(os.getenv("API_KEY_INTX"))
                                     # resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    # resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
 
-                                    # #HIBPwned Scraping
-                                    # hp = HIBPScraping()
-                                    # resultadosPwnedPhone = asyncio.run(hp.parseHTML(phone))
-                                    # resultadosPwnedEmail = asyncio.run(hp.parseHTML(email))
+                                    #HIBPwned Scraping
+                                    hp = HIBPScraping()
+                                    resultadosPwnedPhone = asyncio.run(hp.parseHTML(phone))
+                                    resultadosPwnedEmail = asyncio.run(hp.parseHTML(email))
 
-                                    return render_template("resultadosBusqueda.html", email=email,nickname=nickname, phone=phone,resultadosIntelxEmail=resultadosIntelxEmail)
+                                    return render_template("resultadosBusqueda.html", email=email,nickname=nickname, phone=phone, resultadoNickname=resultadoNickname, resultadosPwnedPhone=resultadosPwnedPhone, resultadosPwnedEmail=resultadosPwnedEmail )
                                     #"nonombre noapellido nickname email nocity nodarknet phone"
                             else:
                                 if city:
@@ -411,17 +415,31 @@ def result():
                                 if city:
                                     return "nonombre noapellido nonickname email city"
                                 else:
+                                    #Intelx
+                                    # intel = intelx()
+                                    # resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    # resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+
+                                    #HIBPwned Scraping
                                     hp = HIBPScraping()
                                     resultadosPwnedPhone = asyncio.run(hp.parseHTML(phone))
                                     resultadosPwnedEmail = asyncio.run(hp.parseHTML(email))
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosPwnedEmail = resultadosPwnedEmail, phone = phone,  resultadosPwnedPhone = resultadosPwnedPhone)
+
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosPwnedEmail = resultadosPwnedEmail, phone = phone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nonickname email nocity nodarknet phone"
                             else:
                                 if city:
                                     return "nonombre noapellido nonickname noemail city"
                                 else:
+                                    #Intelx
+                                    intel = intelx()
+                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
-                                    return render_template("resultadosBusqueda.html",phone=phone)
+                                    #HIBPwned Scraping
+                                    hp = HIBPScraping()
+                                    resultadosPwnedPhone = asyncio.run(hp.parseHTML(phone))
+
+                                    return render_template("resultadosBusqueda.html",phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone=resultadosPwnedPhone)
                                     #return redirect('buscarPersona') TODO
                                     #"nonombre noapellido nonickname noemail nocity nodarknet phone"
             else:
@@ -554,7 +572,7 @@ def result():
                                     hp = HIBPScraping()
                                     resultadosPwnedEmail = asyncio.run(hp.parseHTML(email))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail = resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html",email=email,resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #"nonombre noapellido nonickname email nocity nodarknet nophone"
                             else:
                                 if city:
@@ -590,7 +608,7 @@ def result():
         
 
 #Subprocess to refresh the working free proxies available
-set_interval(runProxyScript,120)
+set_interval(runProxyScript,1800)
 
 # @app.route("/<name>")
 # def user(name):

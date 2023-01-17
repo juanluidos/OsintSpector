@@ -29,10 +29,10 @@ class INEScrapingName:
     async def run(self,p):
         proxy = randomProxyServer("utils\Proxies\workingproxylistINE.txt")
         if(proxy) != None:
-            browser = await p.chromium.launch(slow_mo=100, headless=True, proxy={"server": proxy })
+            browser = await p.chromium.launch(slow_mo=100, headless=False, proxy={"server": proxy })
             print(f"Scraping INE name with proxy: {proxy}")
         else:
-            browser = await p.chromium.launch(slow_mo=100, headless=True)
+            browser = await p.chromium.launch(slow_mo=100, headless=False)
             print(f"Scraping INE name with no proxy available")
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
@@ -46,7 +46,7 @@ class INEScrapingName:
             context = await self.run(p)
             page = await context.new_page()
             await stealth_async(page) #stealth
-            await page.goto("https://www.ine.es/widgets/nombApell/nombApell.shtml?L=&w=1189px&h=918px&borc=000000")
+            await page.goto("https://www.ine.es/widgets/nombApell/nombApell.shtml?L=&w=1189px&h=918px&borc=000000", timeout=0)
             time.sleep(1)
             await page.fill("input[id = cajaW]", input)
             await page.keyboard.press('Enter')
@@ -71,10 +71,10 @@ class INEScrapingSurName:
     async def run(self,p):
         proxy = randomProxyServer("utils\Proxies\workingproxylistINE.txt")
         if(proxy) != None:
-            browser = await p.chromium.launch(slow_mo=100, headless=True, proxy={"server": proxy })
+            browser = await p.chromium.launch(slow_mo=100, headless=False, proxy={"server": proxy })
             print(f"Scraping INE surname with proxy: {proxy}")
         else:
-            browser = await p.chromium.launch(slow_mo=100, headless=True)
+            browser = await p.chromium.launch(slow_mo=100, headless=False)
             print(f"Scraping INE surname with no proxy available")        
         userAgent = randomUserAgent("utils/userAgentsList.txt")
         context = await browser.new_context(
@@ -88,12 +88,13 @@ class INEScrapingSurName:
             context = await self.run(p)
             page = await context.new_page()
             await stealth_async(page) #stealth
-            await page.goto("https://www.ine.es/widgets/nombApell/nombApell.shtml?L=&w=1189px&h=918px&borc=000000")
+            await page.goto("https://www.ine.es/widgets/nombApell/nombApell.shtml?L=&w=1189px&h=918px&borc=000000", timeout=0)
             time.sleep(1)
             surnameList = input.split()
             resultList = []
             for apellido in surnameList:
                 await page.fill("input[id = cajaW]", apellido)
+                time.sleep(2)
                 await page.click("input#btnApell")
                 time.sleep(1)
                 await page.is_visible("div.resultado")
@@ -114,13 +115,14 @@ class INEScrapingSurName:
                     datos = apellido[0].findAll("span",{"class":"widgetResultTotal"})
                     resultList.append((datos[0].getText(), datos[1].getText(),"primer"))
                 else:
-                    resultList.append((datos[0].getText(),"menor de 5","primer"))
+                    resultList.append((input.split()[0],"menor de 5","primer"))
             else:
                 if(apellido[1]):
                     datos = apellido[0].findAll("span",{"class":"widgetResultTotal"})
                     resultList.append((datos[0].getText(), datos[1].getText(),"segundo"))
                 else:
-                    resultList.append((datos[0].getText(),"menor de 5","segundo"))
+                    datos = apellido[0].findAll("span",{"class":"widgetResultTotal"})
+                    resultList.append((input.split()[1],"menor de 5","segundo"))
         return resultList
 
 # my_api_key = os.getenv("API_KEY_GOOGLE")
@@ -226,9 +228,9 @@ class GoogleScrapingPerson():
         rawDataSurnameName = self.getDataSurnameName(name,surname,city)
 
         for element in rawDataNameSurname:
-                searchResultsNameSurname.append([element["domain"], element["link"] ,element["title"]])
+                searchResultsNameSurname.append([element["domain"], element["link"] ,element["title"], element["snippet"]])
         for element in rawDataSurnameName:
-                searchResultsSurnameName.append([element["domain"], element["link"] ,element["title"]])
+                searchResultsSurnameName.append([element["domain"], element["link"] ,element["title"], element["snippet"]])
         #merge 2 list removing duplicates values
         searchResultsNameSurname.extend(x for x in searchResultsSurnameName if x not in searchResultsNameSurname)
         return searchResultsNameSurname

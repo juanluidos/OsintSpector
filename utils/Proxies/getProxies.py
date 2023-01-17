@@ -1,3 +1,4 @@
+import json
 from subprocess import PIPE, Popen
 import sys
 import threading
@@ -33,7 +34,7 @@ def getProxies():
     table = soup.find('tbody')
     proxies = []
     for row in table:
-       if row.find_all('td')[4].text =='elite proxy' or row.find_all('td')[4].text =='transparent':
+        # if row.find_all('td')[4].text =='elite proxy' or row.find_all('td')[4].text =='transparent':
         proxy = ':'.join([row.find_all('td')[0].text, row.find_all('td')[1].text])
         proxies.append(proxy)
     return proxies
@@ -43,7 +44,11 @@ def extractINE(proxy):
     try:
         requests.get("https://www.ine.es/widgets/nombApell/nombApell.shtml?L=&w=1189px&h=918px&borc=000000", headers=headers, proxies={'http' : proxy,'https': proxy}, timeout=1)
         workingListINE.append(proxy)
-    except requests.ConnectionError as err:
+    except requests.exceptions.Timeout as err:
+        pass
+    except requests.exceptions.RequestException as err:
+        pass
+    except json.decoder.JSONDecodeError as err:
         pass
     return workingListINE
 
@@ -53,13 +58,14 @@ def extractIHBP(proxy):
         r = requests.get("https://haveibeenpwned.com/", headers=headers, proxies={'http' : proxy,'https': proxy}, timeout=1)
         soup = BeautifulSoup(r.content, 'html.parser')
         #Si el titulo contiene Just a moment significa que han pillado q es un posible bot usando el proxy
+        #TODO aún el INE no ha detectado que fuera un bot entonces aun no se como actua ante estos casos y html es por eso aun esta copiado del ScrapingHIBP
         if(soup.title.string == "Just a moment..."):
             raise Exception("Err")
-        print(soup)
         workingListHIBP.append(proxy)
     except requests.exceptions.RequestException as err:
         pass
     return workingListHIBP
+
 proxylist = getProxies()
 
 with concurrent.futures.ThreadPoolExecutor() as executor:

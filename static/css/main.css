@@ -7798,6 +7798,46 @@ textarea.form-control-lg {
   --bs-bg-opacity: 1;
   background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
 }
+/*Paleta de colores para nickname dividida por categorias https://coolors.co/f6bd60-f7ede2-f5cac3-84a59d-f28482*/
+.bg-social-success {
+    background-color: #F5CAC3!important;
+}
+
+.bg-gaming-success {
+  background-color: #F6BD60!important;
+}
+
+.bg-coding-success {
+  background-color: #F7EDE2!important;
+}
+
+.bg-music-success {
+  background-color: #84A59D!important;
+}
+
+.bg-else-categoria-success {
+  background-color: #F28482!important;
+}
+/*Paleta de colores para email dividida por categorias https://coolors.co/fab3a9-c6ad94-7fb285-463239-ed6b86 */
+.bg-csvfile-success {
+  background-color: #7FB285!important;
+}
+
+.bg-textfile-success {
+background-color: #C6AD94!important;
+}
+
+.bg-databasefile-success {
+background-color: #ED6B86!important;
+}
+
+.bg-else-email-success {
+background-color: #FAB3A9!important;
+}
+
+.text-justify {
+  text-align: justify;
+}
 
 .bg-secondary {
   --bs-bg-opacity: 1;

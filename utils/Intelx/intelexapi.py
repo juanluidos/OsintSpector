@@ -135,19 +135,18 @@ class intelx:
 				if(maxresults <= 0):
 					self.INTEL_TERMINATE_SEARCH(search_id)
 				done = True
-		return {'records': results}
-
-
-		stats = {}
-		for record in search['records']:
-			if record['bucket'] not in stats:
-				stats[record['bucket']] = 1
-			else:
-				stats[record['bucket']] += 1
-		return json.dumps(stats)
+		return results
 
 	def emailOrPhoneSearch(self, target):
 		search = self.search(target)
-		for record in search['records']:
+		results = []
+		for record in search:
+			resultsElemento = {}
 			print(f"Found media type {record['media']} in {record['bucket']} with an id {record['storageid']}")
-		return search
+			resultsElemento["link"] = f"https://intelx.io/?did={record['systemid']}" #system id = uri del link
+			resultsElemento["date"] = record['date'][: record['date'].find("T")] #formato muy raro, me quedo solo con la fecha q es lo importante
+			resultsElemento["name"] = record['name']
+			resultsElemento["bytes"] = record['size']
+			resultsElemento["media"] = record['mediah']
+			results.append(resultsElemento)
+		return results

@@ -1,4 +1,4 @@
-{%extends "base.html" %}
+{%extends "baseResultados.html" %}
 
 {%block newHeadContent%}
 {%endblock%}
@@ -7,73 +7,796 @@
 <div class="row gx-4 gx-lg-5 align-items-center my-5">
     <div class="col-lg-12">
         <h2 class="font-weight-light">Resultados de la Búsqueda</h2>
-        <p style="text-justify">Pues actualmente el desarrollo de esta pequeña aplicación está llevada por una persona Los resultados se englomerarán en distintas secciones, habrá una sección por casilla rellenada en el formulario previamente.</p>
-        <p style="text-justify">El informe se genera de forma automática, la búsqueda será anónima y no se almacenará ninguna información sobre ésta</p></br>
     </div>
 </div>
 {%endblock%}
 {%block contentRow%}
-    <p>Búsqueda para {{nombre}} {{apellidos}} con nickname {{nickname}}</p>
-    {#INE#}
-    {% if nombre%}
-        {%if resultadosINEName is string%}
-        <p> El total de personas en toda España con el mismo nombre es menor de 20</p>
-        {%else%}
-        <p> El total de personas en toda España con el mismo nombre es de {{resultadosINEName[0]}} con una media de edad de {{resultadosINEName[1]}} años</p>
-        {%endif%}
-        </br>
-    {%endif %}
 
-    {% if apellidos%}
-        {%for apellido in resultadosINESurname%}
-            <p> El total de personas en toda España con el apellido {{apellido[0]}} como {{apellido[2]}} apellido es de: {{apellido[1]}} </p>
-        {%endfor%}
-    {%endif %}
+    {#INE#}
+    <div class="text-justify mb-4">
+        {% if nombre or apellidos%}
+            <h3>Resultados de búsqueda para la persona: <b>{{nombre}} {{apellidos}}</b>.</h3>
+            <div id="ine">
+                {% if nombre%}
+                    <div id="nombreIne" class="mb-2">
+                        {%if resultadosINEName is string%}
+                        <p> El total de personas en toda España con el mismo nombre es menor de 20</p>
+                        {%else%}
+                        <p> El total de personas en toda España con el mismo nombre es de {{resultadosINEName[0]}} con una media de edad de {{resultadosINEName[1]}} años</p>
+                        {%endif%}
+                    </div>
+                {%endif %}
+
+                {% if apellidos%}
+                    <div id="apellidosIne" class="mb-2">
+                        {%for apellido in resultadosINESurname%}
+                            <p> El total de personas en toda España con el apellido {{apellido[0]}} como {{apellido[2]}} apellido es de: {{apellido[1]}} </p>
+                        {%endfor%}
+                    </div>
+                {%endif %}
+            {%endif%}
+        </div>
+
 
     {#Google Search Custom#}
-    {% if nombre or apellidos%}
-    <p> Hay información de {{nombre}} {{apellidos}}, dichos resultados son:</p>
-        {%for elemento in resultadosGoogleSearch%}
-            <p> En el dominio {{elemento[0]}} con link <a href={{elemento[1]}}>{{elemento[1]}}</a> </p>
-            <p>con el título {{elemento[2]}}</p>
-        {%endfor%}
-    {%endif%}
+        <div id="googleSearch">
+            {% if nombre or apellidos%}
+                <h5>La información encontrada en internet sobre {{nombre}} {{apellidos}} es la siguiente: </h5>
+                {%if resultadosGoogleSearch|length !=0 %}
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    {%for card in resultadosGoogleSearch%}
+                    <div class= "col">
+                        <div class ="card border-info mb-3" style="width: 12 rem">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a class="card-link" target="_blank" href={{card[1]}}>
+                                        <div class="card-header text-align:center">
+                                            {{card[0]}} 
+                                        </div>
+                                    </a>
+                                </h5>
+                                <h6 class="card-text"><b>Título: </b> {{card[2]}}.</h6>
+                                {%if card[3] == "Unknown" %}
+                                    <h6 class="card-text"><b>Descripción de la página:</b> No existe descripción sobre esta página.</h6>
+                                {%else%}
+                                    <h6 class="card-text"><b>Descripción de la página:</b> {{card[3]}}.</h6>
+                                {%endif%}
+                            </div>
+                        </div>
+                    </div>
+                    {%endfor%}
+                </div>
+                {%else%}
+                    <div class="mb-4">
+                        <p>No existen datos en internet sobre esta persona.</p>
+                    </div>
+                {%endif%}
+            {%endif%}
+        </div>
+    </div>
     {#Nickname#}
     {% if nickname %}
-    <p> si había nickname es {{nickname}}</p>
-    <p> los resultados son: {{resultadoNickname}}</p> </br>
+        <div class="text-justify mb-4">
+            <h3>Resultados para nickname: <b>{{nickname}}</b></h3>
+            <div class="col-lg-12">
+                <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas y clasificarlas una vez sepas la paleta de colores</p>
+            </div>
+            <div class="row row-cols-1 row-cols-md-4 g-4">
+                {%for card in resultadoNickname%}
+                    <div class= "col">
+                        {%if card[1] == "social" %}
+                            <div class ="card bg-social-success h-100" style="width: 12 rem">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a class="card-link" target="_blank" href={{card[2]}}>
+                                            <div class="card-header text-white text-align:center">
+                                                {{card[0]}} 
+                                            </div>
+                                        </a>
+                                    </h5>
+                                    <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                    <p class="card-text">Usuario encontrado</p>
+                                </div>
+                            </div>
+                        {%elif card[1] == "gaming"%}
+                            <div class ="card bg-gaming-success h-100" style="width: 12 rem">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a class="card-link" target="_blank" href={{card[2]}}>
+                                            <div class="card-header text-white text-align:center">
+                                                {{card[0]}} 
+                                            </div>
+                                        </a>
+                                    </h5>
+                                    <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                    <p class="card-text">Usuario encontrado</p>
+                                </div>
+                            </div>
+
+                        {%elif card[1] == "coding"%}
+                            <div class ="card bg-coding-success h-100" style="width: 12 rem">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a class="card-link" target="_blank" href={{card[2]}}>
+                                            <div class="card-header text-white text-align:center">
+                                                {{card[0]}} 
+                                            </div>
+                                        </a>
+                                    </h5>
+                                    <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                    <p class="card-text">Usuario encontrado</p>
+                                </div>
+                            </div>
+
+                        {%elif card[1] == "music"%}
+                            <div class ="card bg-music-success h-100" style="width: 12 rem">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a class="card-link" target="_blank" href={{card[2]}}>
+                                            <div class="card-header text-white text-align:center">
+                                                {{card[0]}} 
+                                            </div>
+                                        </a>
+                                    </h5>
+                                    <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                    <p class="card-text">Usuario encontrado</p>
+                                </div>
+                            </div>
+
+                        {%else%}
+                            <div class ="bg-else-categoria-success h-100" style="width: 12 rem">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a class="card-link" target="_blank" href={{card[2]}}>
+                                            <div class="card-header text-white text-align:center">
+                                                {{card[0]}} 
+                                            </div>
+                                        </a>
+                                    </h5>
+                                    <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                    <p class="card-text">Usuario encontrado</p>
+                                </div>
+                            </div>
+                        {%endif%}
+                    </div>
+                {%endfor%}
+            </div>
+        </div>
+    {% endif %}
+
+    {#Email and Phone#}
+    {% if email and phone %}
+        <div class="text-justify mb-4 ">
+            <h3>Resultados para email y teléfono: <b>{{email}}, {{phone}}</b>.</h3>
+            <div class="col-lg-12">
+                <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
+            </div>
+            <div class="col-lg-12">
+                <h4>Datos aportados por IntelX</h4>
+                <div class = "mt-3">
+                    <h6>Para el <b>email</b>:</h6>
+                    <!-->{%if resultadosIntelxEmail|length !=0 %}
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        {%for card in resultadosIntelxEmail%}
+                            <div class= "col">
+                                {%if card.get('media') == "CSV File" %}
+                                    <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+                                {%elif card.get('media') == "Text File"%}
+                                    <div class ="card bg-textfile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+
+                                {%elif card.get('media') == "DataBase File"%}
+                                    <div class ="card bg-databasefile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+
+                                {%else%}
+                                    <div class ="card bg-else-email-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+                                {%endif%}
+                            </div>
+                        {%endfor%}
+                    {%else%}
+                        <div class="mb-4">
+                            <p>No existen datos comprometidos para este correo</p>
+                        </div>
+                    {%endif%}<-->
+                </div>
+                <div class = "mt-3">
+                    <h6>Para el <b>teléfono</b>:</h6>
+                    <!-->{%if resultadosIntelxPhone|length !=0 %}
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        {%for card in resultadosIntelxEmail%}
+                            <div class= "col">
+                                {%if card.get('media') == "CSV File" %}
+                                    <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+                                {%elif card.get('media') == "Text File"%}
+                                    <div class ="card bg-textfile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+
+                                {%elif card.get('media') == "DataBase File"%}
+                                    <div class ="card bg-databasefile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+
+                                {%else%}
+                                    <div class ="card bg-else-email-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+                                {%endif%}
+                            </div>
+                        {%endfor%}
+                    {%else%}
+                        <div class="mb-4">
+                            <p>No existen datos comprometidos para este teléfono</p>
+                        </div>
+                    {%endif%}<-->
+                </div>
+            </div>
+            <div>
+                <h4>Datos aportados por otras fuentes</h4>
+                <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
+                <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
+
+                {#BREACHES#}
+                <div class = "mt-3">
+                    <h5>Breaches</h5>
+                    {%if resultadosPwnedEmail[0]|length != 0 %}
+                        <h6>Para el <b>email</b>:</h6>
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {%for card in resultadosPwnedEmail[0]%}
+                                <div class= "col">
+                                    <div class ="card border-info mb-3" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card[1]}}>
+                                                    <div class="card-header text-align:center">
+                                                        {{card[0]}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
+                                            {%if card[2] == "Unknown" %}
+                                                <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
+                                            {%else%}
+                                                <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]}}.</h6>
+                                            {%endif%}
+                                        </div>
+                                    </div>
+                                </div>
+                            {%endfor%}
+                        </div>
+
+                    {%else%}
+                        <div>
+                            <h6>Para el <b>email</b>:</h6>
+                            <p>No existen brechas para este email.</p>
+                        </div>
+                    {%endif%}
+
+                    {%if resultadosPwnedPhone[0]|length != 0 %}
+                        <div class = "mt-3">
+                            <h6>Para el <b>teléfono</b>:</h6>
+                            <div class="row row-cols-1 row-cols-md-4 g-4">
+                                {%for card in resultadosPwnedPhone[0]%}
+                                    <div class= "col">
+                                        <div class ="card border-info mb-3" style="width: 12 rem">
+                                            <div class="card-body">
+                                                <h5 class="card-title">
+                                                    <a class="card-link" target="_blank" href={{card[1]}}>
+                                                        <div class="card-header text-align:center">
+                                                            {{card[0]}} 
+                                                        </div>
+                                                    </a>
+                                                </h5>
+                                                <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
+                                                {%if card[2] == "Unknown" %}
+                                                    <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
+                                                {%else%}
+                                                    <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]}}.</h6>
+                                                {%endif%}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {%endfor%}
+                            </div>
+                        </div>
+                    {%else%}
+                        <div class=" mt-3">
+                            <h6>Para el <b>teléfono</b>:</h6>
+                            <p>No existen brechas para este teléfono.</p>
+                        </div>
+                    {%endif%}
+                </div>
+            </div>
+
+                {#PASTES#}
+                <div class="mt-3">
+                    <h5>Pastes</h5>
+                    {%if resultadosPwnedEmail[1]|length != 0 %}
+                            <p>Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
+                            <div class = "mt-3">    
+                                <h6>Para el <b>email</b>:</h6>
+                                <div class="row row-cols-1 row-cols-md-4 g-4">
+                                    {%for card in resultadosPwnedEmail[1]%}
+                                        <div class= "col">
+                                            <div class ="card border-info mb-3" style="width: 12 rem">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">
+                                                        <a class="card-link" target="_blank" href={{card[1]}}>
+                                                            <div class="card-header text-align:center">
+                                                                {{card[0]}} 
+                                                            </div>
+                                                        </a>
+                                                    </h5>
+                                                    <h6 class="card-text"><b>Emails comprometidos: </b> {{card[3]}}.</h6>
+                                                    {%if card[2] == "Unknown"%}
+                                                        <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
+                                                    {%else%}
+                                                        <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
+                                                    {%endif%}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {%endfor%}
+                                </div>
+                            </div>
+                    {%else%}
+                        <div>
+                            <h6>Para el <b>email</b>:</h6>
+                            <p>No existen <i>pastes</i> para este email.</p>
+                        </div>
+                    {%endif%}
+                </div>
+
+                <div class = "mt-3">
+                    <h5>Breaches</h5>
+                    {%if resultadosPwnedPhone[1]|length != 0 %}
+                            <h6>Para el <b>email</b>:</h6>
+                            <div class="row row-cols-1 row-cols-md-4 g-4">
+                                {%for card in resultadosPwnedPhone[1]%}
+                                    <div class= "col">
+                                        <div class ="card border-info mb-3" style="width: 12 rem">
+                                            <div class="card-body">
+                                                <h5 class="card-title">
+                                                    <a class="card-link" target="_blank" href={{card[1]}}>
+                                                        <div class="card-header text-align:center">
+                                                            {{card[0]}} 
+                                                        </div>
+                                                    </a>
+                                                </h5>
+                                                <h6 class="card-text"><b>Emails comprometidos: </b> {{card[3]}}.</h6>
+                                                {%if card[2] == "Unknown"%}
+                                                    <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
+                                                {%else%}
+                                                    <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
+                                                {%endif%}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {%endfor%}
+                            </div>
+
+                    {%else%}
+                        <div class=" mt-3">
+                            <h6>Para el <b>teléfono</b>:</h6>
+                            <p>No existen <i>pastes</i> para este teléfono.</p>
+                        </div>
+                    {%endif%}
+                </div>
+
+            </div>
+        </div>
+
+    {# solo Email#}
+    {%elif email %}
+        <div class="text-justify mb-4 ">
+            <h3>Resultados para email: <b>{{email}}</b></h3>
+            <div class="col-lg-12">
+                <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
+            </div>
+            <div class="col-lg-12">
+                <h4>Datos aportados por IntelX</h4>
+                {%if resultadosIntelxEmail|length !=0 %}
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    {%for card in resultadosIntelxEmail%}
+                        <div class= "col">
+                            {%if card.get('media') == "CSV File" %}
+                                <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card.get('name')}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                    </div>
+                                </div>
+                            {%elif card.get('media') == "Text File"%}
+                                <div class ="card bg-textfile-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card.get('name')}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                    </div>
+                                </div>
+
+                            {%elif card.get('media') == "DataBase File"%}
+                                <div class ="card bg-databasefile-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card.get('name')}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                    </div>
+                                </div>
+
+                            {%else%}
+                                <div class ="card bg-else-email-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card.get('name')}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                    </div>
+                                </div>
+                            {%endif%}
+                        </div>
+                    {%endfor%}
+                {%else%}
+                    <div class="mb-4">
+                        <p>No existen datos comprometidos para este correo</p>
+                    </div>
+                {%endif%}
+                </div>
+
+                <h4>Datos aportados por otras fuentes</h4>
+                <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
+                <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
+                {%if resultadosPwnedEmail[0]|length != 0 %}
+                    <h5>Breaches</h5>
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        {%for card in resultadosPwnedEmail[0]%}
+                            <div class= "col">
+                                <div class ="card border-info mb-3" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card[1]}}>
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
+                                        {%if card[2] == "Unknown" %}
+                                            <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
+                                        {%else%}
+                                            <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]}}.</h6>
+                                        {%endif%}
+                                    </div>
+                                </div>
+                            </div>
+                        {%endfor%}
+                    </div>
+                {%else%}
+                    <div class="mb-4">
+                        <p>No existen brechas para este correo.</p>
+                    </div>
+                {%endif%}
+
+                {%if resultadosPwnedEmail[1]|length != 0 %}
+                    <h5>Pastes</h5>
+                    <p>Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        {%for card in resultadosPwnedEmail[1]%}
+                            <div class= "col">
+                                <div class ="card border-info mb-3" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card[1]}}>
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
+                                        {%if card[2] == "Unknown"%}
+                                            <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
+                                        {%else%}
+                                            <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
+                                        {%endif%}
+                                    </div>
+                                </div>
+                            </div>
+                        {%endfor%}
+                    </div>
+                {%else%}
+                    <div class="mb-4">
+                        <p>No existen <i>pastes</i> para este correo.</p>
+                    </div>
+                {%endif%}
+            </div>
+        </div>
     
+    {#solo Phone#}
+    {% elif phone %}
+        <div class="text-justify mb-4 ">
+            <h3>Resultados para el teléfono: <b>{{phone}}</b></h3>
+            <div class="col-lg-12">
+                <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
+            </div>
+            <div class="col-lg-12">
+                <h4>Datos aportados por IntelX</h4>
+                {%if resultadosIntelxPhone|length !=0 %}
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    {%for card in resultadosIntelxEmail%}
+                        <div class= "col">
+                            {%if card.get('media') == "CSV File" %}
+                                <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card.get('name')}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                    </div>
+                                </div>
+                            {%elif card.get('media') == "Text File"%}
+                                <div class ="card bg-textfile-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card.get('name')}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                    </div>
+                                </div>
+
+                            {%elif card.get('media') == "DataBase File"%}
+                                <div class ="card bg-databasefile-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card.get('name')}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                    </div>
+                                </div>
+
+                            {%else%}
+                                <div class ="card bg-else-email-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card.get('name')}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                    </div>
+                                </div>
+                            {%endif%}
+                        </div>
+                    {%endfor%}
+                {%else%}
+                    <div class="mb-4">
+                        <p>No existen datos comprometidos para este teléfono</p>
+                    </div>
+                {%endif%}
+                </div>
+
+                <h4>Datos aportados por otras fuentes</h4>
+                <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
+                <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
+                {%if resultadosPwnedPhone[0]|length != 0 %}
+                    <h5>Breaches</h5>
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        {%for card in resultadosPwnedPhone[0]%}
+                            <div class= "col">
+                                <div class ="card border-info mb-3" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card[1]}}>
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
+                                        {%if card[2] == "Unknown" %}
+                                            <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
+                                        {%else%}
+                                            <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]}}.</h6>
+                                        {%endif%}
+                                    </div>
+                                </div>
+                            </div>
+                        {%endfor%}
+                    </div>
+                {%else%}
+                    <div class="mb-4">
+                        <p>No existen brechas para este correo.</p>
+                    </div>
+                {%endif%}
+
+                {%if resultadosPwnedPhone[1]|length != 0 %}
+                    <h5>Pastes</h5>
+                    <p>Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        {%for card in resultadosPwnedPhone[1]%}
+                            <div class= "col">
+                                <div class ="card border-info mb-3" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card[1]}}>
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
+                                        {%if card[2] == "Unknown"%}
+                                            <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
+                                        {%else%}
+                                            <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
+                                        {%endif%}
+                                    </div>
+                                </div>
+                            </div>
+                        {%endfor%}
+                    </div>
+                {%else%}
+                    <div class="mb-4">
+                        <p>No existen <i>pastes</i> para este correo.</p>
+                    </div>
+                {%endif%}
+            </div>
+        </div>
     {% endif %}
-    <!-- Poner cuando este bonito que no se aportó el nickname-->
 
-
-
-    {% if email %}
-
-    <p> si había email es {{email}}</p>
-    <p> los resultados en IHBP son: {{resultadosPwnedEmail}}</p> </br>
-    <p> estos resultados de email IHBP son una lista de jsons, cada uno tiene propiedad name, title, domain, breachDate, addedDate modifieddate, pqncount, descirption</p> </br>
-    <p> los resultados en IntelX son: {{resultadosIntelxEmail}} </p>
-
-
-    {% endif %}
-    <!-- Poner cuando este bonito que no se aportó el email-->
-
-
-
-
-    {%if phone %}
-
-    <p> si había teléfono es {{phone}}</p>
-    <p> los resultados en IHBP son: {{resultadosPwnedPhone}}</p> </br>
-    <p> estos resultados telefono IntelX son una lista de jsons, cada uno tiene propiedad name, title, domain, breachDate, addedDate modifieddate, pqncount, descirption</p> </br>
-    <p> los resultados en IntelX son: {{resultadosIntelxPhone}} </p>
-
-    {% endif%}
-    <!-- Poner cuando este bonito que no se aportó el phone-->
-
+    {#Darknet#}
     {% if darknet %}
     <p> con nombre {{nombre}} y apellidos {{apellidos}} <p>
     <p> los resultados darknet son: {{resultadoDarknet}} <p></br>
     {%endif%}
+
 {%endblock%}
