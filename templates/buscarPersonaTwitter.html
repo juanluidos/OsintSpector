@@ -8,11 +8,11 @@
 {%block headingRow%}
 <div class="row gx-4 gx-lg-5 align-items-center my-5">
     <div class="col-md-2"><img class="img-fluid rounded mb-4 mb-lg-0" src="static/assets/form.png" alt="..." /></div>
-    <div class="col-md-10">
+    <div class="col-md-8">
         <div class="col-md-12">
             <h2 class="font-weight-light">Información antes de rellenar el formulario</h2>
-            <p style="text-align:justify">Todas las casillas del formulario son opcionales, cada una de ellas realiza una búsqueda independiente, salvo el conjunto Nombre-Apellidos.</p>
-            <p style="text-align:justify">Los resultados se englomerarán en distintas secciones, habrá una sección por casilla rellenada en el formulario previamente.</p>
+            <p style="text-align:justify">Escribe el @username de la persona que quieres buscar información en el formulario de abajo. miau miau miau miau</p>
+            <p style="text-align:justify">Los resultados se englomerarán en distintas secciones, habrá distintas secciones PLACEHOLDER</p>
             <p style="text-align:justify">El informe se genera de forma automática, la búsqueda será anónima y no se almacenará ninguna información sobre ésta</p></br>
             <p style="text-align:justify">Para más información entre aquí:</p> 
         </div>
@@ -20,9 +20,10 @@
             <a class="btn btn-primary" href="/info">Mas información</a>
         </div>
     </div>
+    <div class="col-md-2"><img class="img-fluid rounded mb-4 mb-lg-0" src="static/assets/glass.jpg" alt="Magnifying glass with twitter logo in it" /></div>
 </div>
 {%endblock%}
-
+    
 {%block callToAction%}
 <div class="card text-white bg-secondary my-4 py-2 text-center">
     <div class="card-body"><p class="text-white m-0"> Al realizar la búsqueda el proceso puede tardar bastante tiempo... Por favor tenga paciencia.</p></div>
@@ -32,88 +33,20 @@
 {%block contentRow%}
 
 <!-- Content Row-->
-<div class="page-wrapper">
+<div class="page-wrapper-twitter">
     <div class="wrapper wrapper--w790">
         <div class="card card-5">
             <div class="card-heading">
-                <h2 class="title">Formulario Buscar Persona</h2>
+                <h2 class="title">Formulario Análisis Username</h2>
             </div>
             <div class="card-body">
-              <form action="{{ url_for('result') }}" method="POST"> <!-- Post method que desemboque en /result los resultados-->
-                    <div class="form-row m-b-55">
-                        <div class="name">Nombre</div>
-                        <div class="value">
-                            <div class="row row-space">
-                                <div class="col-2">
-                                    <div class="input-group-desc">
-                                        <input class="input--style-5" type="text" name="nombre">
-                                        <label class="label--desc">Nombre</label>
-                                    </div>
-                                </div>
-                                <div class="col-2">
-                                    <div class="input-group-desc">
-                                        <input class="input--style-5" type="text" name="apellidos">
-                                        <label class="label--desc">Apellido - Apellidos</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+              <form action="{{ url_for('resultTwitter') }}" method="POST"> <!-- Post method que desemboque en /resultTwitter los resultados-->
                     <div class="form-row">
-                        <div class="name">Nickname</div>
+                        <div class="name">Username</div>
                         <div class="value">
                             <div class="input-group">
-                                <input class="input--style-5" type="text" name="nickname">
+                                <input class="input--style-5" type="text" name="username" placeholder="username">
                             </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="name">Email</div>
-                        <div class="value">
-                            <div class="input-group">
-                                <input class="input--style-5" type="email" name="email">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                      <div class="name">Ciudad</div>
-                      <div class="value">
-                          <div class="input-group">
-                              <input class="input--style-5" type="text" name="city">
-                          </div>
-                      </div>
-                  </div>
-                    <div class="form-row m-b-55">
-                        <div class="name">Teléfono</div>
-                        <div class="value">
-                            <div class="row row-refine">
-                                <div class="col-3">
-                                    <div class="input-group-desc">
-                                        <input class="input--style-5" type="text" name="area_code">
-                                        <label class="label--desc">Código área</label>
-                                    </div>
-                                </div>
-                                <div class="col-9">
-                                    <div class="input-group-desc">
-                                        <input class="input--style-5" type="text" name="phone">
-                                        <label class="label--desc">Número de teléfono</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row p-t-20">
-                        <label class="label label--block">¿Quieres añadir información encontrada en la Darknet? </br></label>
-                        <label class="label label--darknet">Tenga en cuenta que pueden haber bastantes falsos positivos en esta opción</label>
-                        <div class="p-t-20">
-                            <label class="radio-container m-r-55">Sí
-                                <input type="radio" checked="checked" name="darknet" value=true>
-                                <span class="checkmark"></span>
-                            </label>
-                            <label class="radio-container">No
-                                <input type="radio" name="darknet" value= "">
-                                <span class="checkmark"></span>
-                            </label>
                         </div>
                     </div>
                     <div>

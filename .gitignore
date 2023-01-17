@@ -294,4 +294,8 @@ $RECYCLE.BIN/
 
 /pruebas html
 
+#Own txts
+
+utils/Proxies/workingproxylistINE.txt
+utils/Proxies/workingproxylistHIBP.txt
 # End of https://www.toptal.com/developers/gitignore/api/python,flask,venv,dotenv,windows

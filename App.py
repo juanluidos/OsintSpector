@@ -41,6 +41,10 @@ def buscarPersona():
 def buscarPersonaTwitter():
     return render_template("buscarPersonaTwitter.html")    
 
+@App.route("/resultTwitter", methods=["POST", "GET"])
+def resultTwitter():
+    return render_template("index.html")    
+
 @App.route("/result", methods=["POST", "GET"])
 def result():
 
