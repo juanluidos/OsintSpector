@@ -1,11 +1,12 @@
 import asyncio
 import os
 import sys
+from time import sleep
 from flask import Flask, redirect, url_for, render_template, request
 from utils.Intelx.intelexapi import intelx
 from searchScripts.buscarPersona.darknet.darkScraping import AhmiaScraping
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
-from searchScripts.buscarPersona.emailPhone.emailScraping import emailBreachedExpanded, emailPasted
+from searchScripts.buscarPersona.emailPhone.hibpApi import HIBPApi
 from searchScripts.buscarPersona.emailPhone.emailPhoneIHBP import HIBPScraping
 from searchScripts.buscarPersona.person.personScraping import GoogleScrapingPerson, INEScrapingName, INEScrapingSurName
 from subprocess import Popen, PIPE
@@ -137,19 +138,19 @@ def result():
                             if email:
                                 if city:
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-                                    resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-                                    resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                                    # resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    # return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
                                     #"nonombre noapellido nickname email city darknet phone" TODO FALTA CITY
                                 else:
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-                                    resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-                                    resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                                    # resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    # return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
                                     #"nonombre noapellido nickname email nocity darknet phone"
                             else:
                                 if city:
@@ -213,10 +214,21 @@ def result():
                                 if city:
                                     return "nombre apellido nonickname noemail city darknet nophone"
                                 else:
+                                    # return "nombre apellido nonickname noemail city nodarknet nophone"
+                                    #INE
+                                    ine = INEScrapingName()
+                                    resultadosINEName = asyncio.run(ine.parseHTML(nombre))
+
+                                    apellid = INEScrapingSurName()
+                                    resultadosINESurname = asyncio.run(apellid.parseHTML(apellidos))
+
+                                    #Google Custom Search
+                                    hp = GoogleScrapingPerson()
+                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos)
                                     hp = AhmiaScraping()
                                     uriUrlAhmia = f"?q={nombre}+{apellidos}".replace(" ", "+")
                                     resultadoDarknet = hp.parseHTML(baseUrlAhmia+uriUrlAhmia)
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadoDarknet = resultadoDarknet, darknet = darknet)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadoDarknet = resultadoDarknet, darknet = darknet, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch)
 
                                     #return "nombre apellido nonickname noemail nocity darknet nophone"
                     else:
@@ -271,17 +283,17 @@ def result():
                             if email:
                                 if city:
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-                                    resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-                                    resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                                    # return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
                                     #"nonombre noapellido nickname email city darknet nophone" TODO FALTA CITY
                                 else:
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-                                    resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-                                    resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                                    # return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
                                     #"nonombre noapellido nickname email nocity darknet nophone"
                             else:
                                 if city:
@@ -295,10 +307,11 @@ def result():
                                 if city:
                                     return "nonombre noapellido nonickname email city"
                                 else:
-                                    resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-                                    resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                                    pass
+                                    # resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                                    # return render_template("resultadosBusqueda.html",email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
                                     #"nonombre noapellido nonickname email nocity darknet nophone"
                             else:
                                 if city:
@@ -387,10 +400,10 @@ def result():
                             if email:
                                 if city:
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-                                    resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-                                    resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                                    # return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
                                     #"nonombre noapellido nickname email city nodarknet phone" TODO FALTA CITY
                                 else:
                                     #Username
@@ -420,16 +433,17 @@ def result():
                                     return "nonombre noapellido nonickname email city"
                                 else:
                                     #Intelx
-                                    # intel = intelx()
-                                    # resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
-                                    # resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    intel = intelx()
+                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
-                                    #HIBPwned Scraping
-                                    hp = HIBPScraping()
-                                    resultadosPwnedPhone = asyncio.run(hp.parseHTML(phone))
-                                    resultadosPwnedEmail = asyncio.run(hp.parseHTML(email))
+                                    #HIBPwned API
+                                    hp = HIBPApi(os.getenv('API_KEY_IHBP'))
+                                    resultadosPwnedPhone = asyncio.run(hp.getPwnedData(phone))
+                                    sleep(7)
+                                    resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosPwnedEmail = resultadosPwnedEmail, phone = phone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosPwnedEmail = resultadosPwnedEmail, phone = phone, resultadosPwnedPhone = resultadosPwnedPhone, resultadosIntelxEmail=resultadosIntelxEmail, resultadosIntelxPhone=resultadosIntelxPhone)
                                     #"nonombre noapellido nonickname email nocity nodarknet phone"
                             else:
                                 if city:
@@ -439,12 +453,10 @@ def result():
                                     intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
-                                    #HIBPwned Scraping
-                                    hp = HIBPScraping()
-                                    resultadosPwnedPhone = asyncio.run(hp.parseHTML(phone))
-
+                                    #HIBPwned API
+                                    hp = HIBPApi(os.getenv('API_KEY_IHBP'))
+                                    resultadosPwnedPhone = asyncio.run(hp.getPwnedData(phone))
                                     return render_template("resultadosBusqueda.html",phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone=resultadosPwnedPhone)
-                                    #return redirect('buscarPersona') TODO
                                     #"nonombre noapellido nonickname noemail nocity nodarknet phone"
             else:
                 if nombre:
@@ -544,17 +556,17 @@ def result():
                             if email:
                                 if city:
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-                                    resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-                                    resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                                    # return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
                                     #"nonombre noapellido nickname email city nodarknet nophone" TODO FALTA CITY
                                 else:
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-                                    resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
-                                    resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosBreachedEmail = emailBreachedExpanded(email, os.getenv("API_KEY_IHBP"))
+                                    # resultadosPastedEmail = emailPasted(email, os.getenv("API_KEY_IHBP"))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
+                                    # return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, email=email, resultadosBreached = resultadosBreachedEmail, resultadosPasted = resultadosPastedEmail)
                                     #"nonombre noapellido nickname email nocity nodarknet nophone"
                             else:
                                 if city:
@@ -572,11 +584,11 @@ def result():
                                     intel = intelx()
                                     resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
 
-                                    #HIBPwned Scraping
-                                    hp = HIBPScraping()
-                                    resultadosPwnedEmail = asyncio.run(hp.parseHTML(email))
+                                    #HIBPwned API
+                                    hp = HIBPApi(os.getenv('API_KEY_IHBP'))
+                                    resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html",email=email,resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosPwnedEmail = resultadosPwnedEmail,resultadosIntelxEmail=resultadosIntelxEmail)
                                     #"nonombre noapellido nonickname email nocity nodarknet nophone"
                             else:
                                 if city:
@@ -607,6 +619,7 @@ def result():
         #     return redirect("buscarPersona")
 
     else:
+        #si es metodo GET
         #quizás añadir 404.html en lugar de redirect
         return redirect("index.html")
         
