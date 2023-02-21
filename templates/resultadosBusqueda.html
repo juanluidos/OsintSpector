@@ -5,8 +5,8 @@
 
 {%block headingRow%}
 <div class="row gx-4 gx-lg-5 align-items-center my-5">
-    <div class="col-lg-12">
-        <h2 class="font-weight-light">Resultados de la Búsqueda</h2>
+    <div class="col-lg-12 text-center">
+        <h1 class="font-weight-light">Resultados de la Búsqueda</h1>
     </div>
 </div>
 {%endblock%}
@@ -36,44 +36,44 @@
                 {%endif %}
             {%endif%}
         </div>
-
+    </div>
 
     {#Google Search Custom#}
-        <div id="googleSearch">
-            {% if nombre or apellidos%}
-                <h5>La información encontrada en internet sobre {{nombre}} {{apellidos}} es la siguiente: </h5>
-                {%if resultadosGoogleSearch|length !=0 %}
-                <div class="row row-cols-1 row-cols-md-4 g-4">
-                    {%for card in resultadosGoogleSearch%}
-                    <div class= "col">
-                        <div class ="card border-info mb-3" style="width: 12 rem">
-                            <div class="card-body">
-                                <h5 class="card-title">
-                                    <a class="card-link" target="_blank" href={{card[1]}}>
-                                        <div class="card-header text-align:center">
-                                            {{card[0]}} 
-                                        </div>
-                                    </a>
-                                </h5>
-                                <h6 class="card-text"><b>Título: </b> {{card[2]}}.</h6>
-                                {%if card[3] == "Unknown" %}
-                                    <h6 class="card-text"><b>Descripción de la página:</b> No existe descripción sobre esta página.</h6>
-                                {%else%}
-                                    <h6 class="card-text"><b>Descripción de la página:</b> {{card[3]}}.</h6>
-                                {%endif%}
-                            </div>
+    <div id="googleSearch">
+        {% if nombre or apellidos%}
+            <h5>La información encontrada en internet sobre {{nombre}} {{apellidos}} es la siguiente: </h5>
+            {%if resultadosGoogleSearch|length !=0 %}
+            <div class="row row-cols-1 row-cols-md-4 g-4">
+                {%for card in resultadosGoogleSearch%}
+                <div class= "col">
+                    <div class ="card border-info mb-3" style="width: 12 rem">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a class="card-link" target="_blank" href={{card[1]}}>
+                                    <div class="card-header text-align:center">
+                                        {{card[0]}} 
+                                    </div>
+                                </a>
+                            </h5>
+                            <h6 class="card-text"><b>Título: </b> {{card[2]}}.</h6>
+                            {%if card[3] == "Unknown" %}
+                                <h6 class="card-text"><b>Descripción de la página:</b> No existe descripción sobre esta página.</h6>
+                            {%else%}
+                                <h6 class="card-text"><b>Descripción de la página:</b> {{card[3]| safe}}.</h6>
+                            {%endif%}
                         </div>
                     </div>
-                    {%endfor%}
                 </div>
-                {%else%}
-                    <div class="mb-4">
-                        <p>No existen datos en internet sobre esta persona.</p>
-                    </div>
-                {%endif%}
+                {%endfor%}
+            </div>
+            {%else%}
+                <div class="mb-4">
+                    <p>No existen datos en internet sobre esta persona.</p>
+                </div>
             {%endif%}
-        </div>
+        {%endif%}
     </div>
+
     {#Nickname#}
     {% if nickname %}
         <div class="text-justify mb-4">
@@ -171,11 +171,11 @@
             <div class="col-lg-12">
                 <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
             </div>
-            <div class="col-lg-12">
+            <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por IntelX</h4>
                 <div class = "mt-3">
                     <h6>Para el <b>email</b>:</h6>
-                    <!-->{%if resultadosIntelxEmail|length !=0 %}
+                    {%if resultadosIntelxEmail|length !=0 %}
                     <div class="row row-cols-1 row-cols-md-4 g-4">
                         {%for card in resultadosIntelxEmail%}
                             <div class= "col">
@@ -244,15 +244,16 @@
                                 {%endif%}
                             </div>
                         {%endfor%}
+                    </div>
                     {%else%}
-                        <div class="mb-4">
-                            <p>No existen datos comprometidos para este correo</p>
-                        </div>
-                    {%endif%}<-->
+                    <div class="mb-4">
+                        <p>No existen datos comprometidos para este correo</p>
+                    </div>
+                    {%endif%}
                 </div>
                 <div class = "mt-3">
                     <h6>Para el <b>teléfono</b>:</h6>
-                    <!-->{%if resultadosIntelxPhone|length !=0 %}
+                    {%if resultadosIntelxPhone|length !=0 %}
                     <div class="row row-cols-1 row-cols-md-4 g-4">
                         {%for card in resultadosIntelxEmail%}
                             <div class= "col">
@@ -321,14 +322,15 @@
                                 {%endif%}
                             </div>
                         {%endfor%}
+                    </div>
                     {%else%}
-                        <div class="mb-4">
-                            <p>No existen datos comprometidos para este teléfono</p>
-                        </div>
-                    {%endif%}<-->
+                    <div class="mb-4">
+                        <p>No existen datos comprometidos para este teléfono</p>
+                    </div>
+                    {%endif%}
                 </div>
             </div>
-            <div>
+            <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por otras fuentes</h4>
                 <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
                 <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
@@ -345,17 +347,17 @@
                                     <div class ="card border-info mb-3" style="width: 12 rem">
                                         <div class="card-body">
                                             <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href={{card[1]}}>
+                                                <a class="card-link" target="_blank" href="{{ ''.join(['http://', card[0]])}}">
                                                     <div class="card-header text-align:center">
                                                         {{card[0]}} 
                                                     </div>
                                                 </a>
                                             </h5>
                                             <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
-                                            {%if card[2] == "Unknown" %}
+                                            {%if card[2] is none %}
                                                 <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
                                             {%else%}
-                                                <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]}}.</h6>
+                                                <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]| safe}}.</h6>
                                             {%endif%}
                                         </div>
                                     </div>
@@ -370,26 +372,26 @@
                         </div>
                     {%endif%}
 
-                    {%if resultadosPwnedPhone[0]|length != 0 %}
+                    {%if resultadosPwnedPhone|length != 0 %}
                         <div class = "mt-3">
                             <h6>Para el <b>teléfono</b>:</h6>
                             <div class="row row-cols-1 row-cols-md-4 g-4">
-                                {%for card in resultadosPwnedPhone[0]%}
+                                {%for card in resultadosPwnedPhone%}
                                     <div class= "col">
                                         <div class ="card border-info mb-3" style="width: 12 rem">
                                             <div class="card-body">
                                                 <h5 class="card-title">
-                                                    <a class="card-link" target="_blank" href={{card[1]}}>
+                                                    <a class="card-link" target="_blank" href="{{ ''.join(['http://', card[1]])}}">
                                                         <div class="card-header text-align:center">
                                                             {{card[0]}} 
                                                         </div>
                                                     </a>
                                                 </h5>
                                                 <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
-                                                {%if card[2] == "Unknown" %}
+                                                {%if card[2] is none %}
                                                     <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
                                                 {%else%}
-                                                    <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]}}.</h6>
+                                                    <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]| safe}}.</h6>
                                                 {%endif%}
                                             </div>
                                         </div>
@@ -404,65 +406,28 @@
                         </div>
                     {%endif%}
                 </div>
-            </div>
 
                 {#PASTES#}
                 <div class="mt-3">
                     <h5>Pastes</h5>
                     {%if resultadosPwnedEmail[1]|length != 0 %}
-                            <p>Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
-                            <div class = "mt-3">    
-                                <h6>Para el <b>email</b>:</h6>
-                                <div class="row row-cols-1 row-cols-md-4 g-4">
-                                    {%for card in resultadosPwnedEmail[1]%}
-                                        <div class= "col">
-                                            <div class ="card border-info mb-3" style="width: 12 rem">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">
-                                                        <a class="card-link" target="_blank" href={{card[1]}}>
-                                                            <div class="card-header text-align:center">
-                                                                {{card[0]}} 
-                                                            </div>
-                                                        </a>
-                                                    </h5>
-                                                    <h6 class="card-text"><b>Emails comprometidos: </b> {{card[3]}}.</h6>
-                                                    {%if card[2] == "Unknown"%}
-                                                        <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
-                                                    {%else%}
-                                                        <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
-                                                    {%endif%}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {%endfor%}
-                                </div>
-                            </div>
-                    {%else%}
-                        <div>
-                            <h6>Para el <b>email</b>:</h6>
-                            <p>No existen <i>pastes</i> para este email.</p>
-                        </div>
-                    {%endif%}
-                </div>
-
-                <div class = "mt-3">
-                    <h5>Breaches</h5>
-                    {%if resultadosPwnedPhone[1]|length != 0 %}
+                        <p>Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
+                        <div class = "mt-3">    
                             <h6>Para el <b>email</b>:</h6>
                             <div class="row row-cols-1 row-cols-md-4 g-4">
-                                {%for card in resultadosPwnedPhone[1]%}
+                                {%for card in resultadosPwnedEmail[1]%}
                                     <div class= "col">
                                         <div class ="card border-info mb-3" style="width: 12 rem">
                                             <div class="card-body">
                                                 <h5 class="card-title">
-                                                    <a class="card-link" target="_blank" href={{card[1]}}>
+                                                    <a class="card-link" target="_blank" href="{{ ''.join(['http://', card[0]])}}">
                                                         <div class="card-header text-align:center">
-                                                            {{card[0]}} 
+                                                            {{card[1]}} 
                                                         </div>
                                                     </a>
                                                 </h5>
                                                 <h6 class="card-text"><b>Emails comprometidos: </b> {{card[3]}}.</h6>
-                                                {%if card[2] == "Unknown"%}
+                                                {%if card[2] is none %}
                                                     <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
                                                 {%else%}
                                                     <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
@@ -472,15 +437,14 @@
                                     </div>
                                 {%endfor%}
                             </div>
-
+                        </div>
                     {%else%}
-                        <div class=" mt-3">
-                            <h6>Para el <b>teléfono</b>:</h6>
-                            <p>No existen <i>pastes</i> para este teléfono.</p>
+                        <div>
+                            <h6>Para el <b>email</b>:</h6>
+                            <p>No existen <i>pastes</i> para este email.</p>
                         </div>
                     {%endif%}
                 </div>
-
             </div>
         </div>
 
@@ -491,7 +455,7 @@
             <div class="col-lg-12">
                 <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
             </div>
-            <div class="col-lg-12">
+            <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por IntelX</h4>
                 {%if resultadosIntelxEmail|length !=0 %}
                 <div class="row row-cols-1 row-cols-md-4 g-4">
@@ -568,73 +532,74 @@
                     </div>
                 {%endif%}
                 </div>
-
-                <h4>Datos aportados por otras fuentes</h4>
-                <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
-                <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
-                <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
-                {%if resultadosPwnedEmail[0]|length != 0 %}
-                    <h5>Breaches</h5>
-                    <div class="row row-cols-1 row-cols-md-4 g-4">
-                        {%for card in resultadosPwnedEmail[0]%}
-                            <div class= "col">
-                                <div class ="card border-info mb-3" style="width: 12 rem">
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card[1]}}>
-                                                <div class="card-header text-align:center">
-                                                    {{card[0]}} 
-                                                </div>
-                                            </a>
-                                        </h5>
-                                        <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
-                                        {%if card[2] == "Unknown" %}
-                                            <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
-                                        {%else%}
-                                            <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]}}.</h6>
-                                        {%endif%}
+            </div>
+            <div class="col-lg-12 mb-4">
+                    <h4>Datos aportados por otras fuentes</h4>
+                    <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
+                    <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                    <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
+                    {%if resultadosPwnedEmail[0]|length != 0 %}
+                        <h5>Breaches</h5>
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {%for card in resultadosPwnedEmail[0]%}
+                                <div class= "col">
+                                    <div class ="card border-info mb-3" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href="{{ ''.join(['http://', card[1]])}}">
+                                                    <div class="card-header text-align:center">
+                                                        {{card[0]}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
+                                            {%if card[2] is none  %}
+                                                <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
+                                            {%else%}
+                                                <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]| safe}}.</h6>
+                                            {%endif%}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        {%endfor%}
-                    </div>
-                {%else%}
-                    <div class="mb-4">
-                        <p>No existen brechas para este correo.</p>
-                    </div>
-                {%endif%}
+                            {%endfor%}
+                        </div>
+                    {%else%}
+                        <div class="mb-4">
+                            <p>No existen brechas para este correo.</p>
+                        </div>
+                    {%endif%}
 
-                {%if resultadosPwnedEmail[1]|length != 0 %}
-                    <h5>Pastes</h5>
-                    <p>Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
-                    <div class="row row-cols-1 row-cols-md-4 g-4">
-                        {%for card in resultadosPwnedEmail[1]%}
-                            <div class= "col">
-                                <div class ="card border-info mb-3" style="width: 12 rem">
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card[1]}}>
-                                                <div class="card-header text-align:center">
-                                                    {{card[0]}} 
-                                                </div>
-                                            </a>
-                                        </h5>
-                                        <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
-                                        {%if card[2] == "Unknown"%}
-                                            <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
-                                        {%else%}
-                                            <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
-                                        {%endif%}
+                    {%if resultadosPwnedEmail[1]|length != 0 %}
+                        <h5>Pastes</h5>
+                        <p>Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {%for card in resultadosPwnedEmail[1]%}
+                                <div class= "col">
+                                    <div class ="card border-info mb-3" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank"  href="{{ ''.join(['http://', card[0]])}}">
+                                                    <div class="card-header text-align:center">
+                                                        {{card[1]}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6 class="card-text"><b>Emails comprometidos: </b> {{card[3]}}.</h6>
+                                            {%if card[2] is none %}
+                                                <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
+                                            {%else%}
+                                                <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
+                                            {%endif%}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        {%endfor%}
-                    </div>
-                {%else%}
-                    <div class="mb-4">
-                        <p>No existen <i>pastes</i> para este correo.</p>
-                    </div>
-                {%endif%}
+                            {%endfor%}
+                        </div>
+                    {%else%}
+                        <div class="mb-4">
+                            <p>No existen <i>pastes</i> para este correo.</p>
+                        </div>
+                    {%endif%}
             </div>
         </div>
     
@@ -645,7 +610,7 @@
             <div class="col-lg-12">
                 <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
             </div>
-            <div class="col-lg-12">
+            <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por IntelX</h4>
                 {%if resultadosIntelxPhone|length !=0 %}
                 <div class="row row-cols-1 row-cols-md-4 g-4">
@@ -722,30 +687,31 @@
                     </div>
                 {%endif%}
                 </div>
-
+            </div>
+            <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por otras fuentes</h4>
                 <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
                 <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
                 <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
-                {%if resultadosPwnedPhone[0]|length != 0 %}
+                {%if resultadosPwnedPhone|length != 0 %}
                     <h5>Breaches</h5>
                     <div class="row row-cols-1 row-cols-md-4 g-4">
-                        {%for card in resultadosPwnedPhone[0]%}
+                        {%for card in resultadosPwnedPhone%}
                             <div class= "col">
                                 <div class ="card border-info mb-3" style="width: 12 rem">
                                     <div class="card-body">
                                         <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card[1]}}>
+                                            <a class="card-link" target="_blank" href="{{ ''.join(['http://', card[1]])}}">
                                                 <div class="card-header text-align:center">
                                                     {{card[0]}} 
                                                 </div>
                                             </a>
                                         </h5>
                                         <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
-                                        {%if card[2] == "Unknown" %}
+                                        {%if card[2] is none %}
                                             <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
                                         {%else%}
-                                            <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]}}.</h6>
+                                            <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]| safe}}.</h6>
                                         {%endif%}
                                     </div>
                                 </div>
@@ -755,38 +721,6 @@
                 {%else%}
                     <div class="mb-4">
                         <p>No existen brechas para este correo.</p>
-                    </div>
-                {%endif%}
-
-                {%if resultadosPwnedPhone[1]|length != 0 %}
-                    <h5>Pastes</h5>
-                    <p>Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
-                    <div class="row row-cols-1 row-cols-md-4 g-4">
-                        {%for card in resultadosPwnedPhone[1]%}
-                            <div class= "col">
-                                <div class ="card border-info mb-3" style="width: 12 rem">
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card[1]}}>
-                                                <div class="card-header text-align:center">
-                                                    {{card[0]}} 
-                                                </div>
-                                            </a>
-                                        </h5>
-                                        <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
-                                        {%if card[2] == "Unknown"%}
-                                            <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
-                                        {%else%}
-                                            <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
-                                        {%endif%}
-                                    </div>
-                                </div>
-                            </div>
-                        {%endfor%}
-                    </div>
-                {%else%}
-                    <div class="mb-4">
-                        <p>No existen <i>pastes</i> para este correo.</p>
                     </div>
                 {%endif%}
             </div>

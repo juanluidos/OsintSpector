@@ -233,6 +233,7 @@ class GoogleScrapingPerson():
                 searchResultsSurnameName.append([element["domain"], element["link"] ,element["title"], element["snippet"]])
         #merge 2 list removing duplicates values
         searchResultsNameSurname.extend(x for x in searchResultsSurnameName if x not in searchResultsNameSurname)
+        print("Found {data1} and google search results".format(data1 = len(searchResultsNameSurname)))
         return searchResultsNameSurname
 
 

@@ -1,9 +1,9 @@
 import random
-import socket
 import time
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 from bs4 import BeautifulSoup
+from fake_headers import Headers
 def randomUserAgent(filename):
     with open(filename) as f:
         lines = f.readlines()
@@ -26,11 +26,12 @@ class HIBPScraping:
             browser = await p.chromium.launch(slow_mo=500, headless=False, proxy={"server": proxy })
             print(f"Scraping HIBP with proxy: {proxy}")
         else:
-            browser = await p.firefox.launch(slow_mo=500, headless=False)
+            browser = await p.chromium.launch(slow_mo=500, headless=False)
             print(f"Scraping HIBP with no proxy available")   
-        userAgent = randomUserAgent("utils/userAgentsList.txt")
+        print(Headers(browser="chrome", os="win", headers=True).generate())
         context = await browser.new_context(
-            user_agent = userAgent
+            user_agent= randomUserAgent("utils/userAgentsList.txt"),
+            extra_http_headers = Headers(browser="chrome", os="win", headers=True).generate()
         )
         return context
 
@@ -80,7 +81,6 @@ class HIBPScraping:
                 
                 try:
                     linkBr = breach.find("a")["href"]
-                    print(breach.find("a")["href"])
                 except:
                     linkBr = "https://google.com"
                 descriptionBr = breach.find("p").text.split(":", 1)[1]
@@ -95,7 +95,6 @@ class HIBPScraping:
 
                 try:
                     linkPasted = paste.find("a")["href"]
-                    print(paste.find("a")["href"])
                 except:
                     linkPasted = "https://google.com"
 
