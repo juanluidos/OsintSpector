@@ -66,10 +66,8 @@ class HIBPApi:
                         found_site.append(value)
                     if key == "Date":
                         found_site.append(value)
-                        print(value)
                     if key == "EmailCount":
                         found_site.append(value)
-                    print(found_site)
                 all_found_sites.append(found_site)
 
             print(
