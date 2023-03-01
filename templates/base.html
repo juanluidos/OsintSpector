@@ -36,8 +36,26 @@
             </div>
         </nav>
         <!-- Page Content-->
+        <script>
+            function clickClose() {
+              alert("something");
+            }
+        </script>
         <div>
             <div class="container px-4 px-lg-5">
+
+                <!-- Message Alert-->
+                {% block message %}
+                <div id="alerta" class="container">
+                    {% for message in get_flashed_messages()[:1] %}
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endblock %}
+
                 <!-- Heading Row-->
                 {%block headingRow%}
                 

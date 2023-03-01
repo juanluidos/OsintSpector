@@ -1,30 +1,37 @@
 import random
-from playwright.async_api import async_playwright
-from playwright_stealth import stealth_async
 from bs4 import BeautifulSoup
 import requests
-# from utils.commonFunctions import randomUserAgent
 
 def randomUserAgent(filename):
     with open(filename) as f:
         lines = f.readlines()
     return random.choice(lines).replace("\n","")
 
+def randomProxyServer(filename):
+    with open(filename) as f:
+        lines = f.readlines()
+        if(len(lines)>1):
+            lines = lines[0:len(lines)-1]
+        #Si no existe ningún proxy disponible por desgracia tendríamos q usar nuestra IP (solo me ha ocurrido una vez durante todo el desarrollo, pero por si acaso)
+        elif(len(lines)==0):
+            return None
+    return {"https:": random.choice(lines).rstrip("\n")}
+
 
 class AhmiaScraping:
     def make_request(self, url):
-
-        payload={}
+        proxy = randomProxyServer("utils\Proxies\workingproxylistINE.txt")
+        payload= {}
         headers = {
         'timeout': '2.5',
         'User-Agent': randomUserAgent("utils/userAgentsList.txt")
         }
-        return requests.request("GET", f"{url}", headers=headers, data=payload)
+        return requests.request("GET", f"{url}", headers=headers, data=payload, proxies=proxy)
 
     def getAhmiaHtml(self, url):
 #es muy diferente aqui lo tengo copiado de como seria con la api de IHBP mirar videos del tio asi cojo solo el html y listo combinado con request
         response = self.make_request(url)
-
+        
         if response.status_code == 200:
             htmlData = response.text
             soup = BeautifulSoup(htmlData, "html.parser")
