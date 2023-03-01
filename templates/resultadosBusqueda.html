@@ -12,7 +12,8 @@
 {%endblock%}
 {%block contentRow%}
 
-    {#INE#}
+    {#NOMBRE Y APELLIDOS#}
+        {#INE#}
     <div class="text-justify mb-4">
         {% if nombre or apellidos%}
             <h3>Resultados de búsqueda para la persona: <b>{{nombre}} {{apellidos}}</b>.</h3>
@@ -38,7 +39,7 @@
         </div>
     </div>
 
-    {#Google Search Custom#}
+        {#Google Search Custom#}
     <div id="googleSearch">
         {% if nombre or apellidos%}
             <h5>La información encontrada en internet sobre {{nombre}} {{apellidos}} es la siguiente: </h5>
@@ -71,6 +72,43 @@
                     <p>No existen datos en internet sobre esta persona.</p>
                 </div>
             {%endif%}
+
+            {%if darknet%}
+                <div class="col-lg-12 mb-4">
+                    <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
+                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    {%if resultadoDarknetNombre|length != 0 %}
+                        <p>Se encontró un total de <b>{{resultadoDarknetNombre|length}} resultados</b>.</p>
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {%for card in resultadoDarknetNombre%}
+                                <div class= "col">
+                                    <div class ="card border-info mb-3" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </h5>
+                                            <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
+                                            <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
+                                            {%if card[2] == "No description provided" %}
+                                                <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
+                                            {%else%}
+                                                <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
+                                            {%endif%}
+                                        </div>
+                                    </div>
+                                </div>
+                            {%endfor%}
+                        </div>
+                    {%else%}
+                        <div class="mb-4">
+                            <p>No existen resultados en la Darknet para este nombre.</p>
+                        </div>
+                    {%endif%}
+                </div>
+            {%endif%}
         {%endif%}
     </div>
 
@@ -81,7 +119,7 @@
             <div class="col-lg-12">
                 <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas y clasificarlas una vez sepas la paleta de colores</p>
             </div>
-            <div class="row row-cols-1 row-cols-md-4 g-4">
+            <div class="row row-cols-1 row-cols-md-4 mb-4 g-4">
                 {%for card in resultadoNickname%}
                     <div class= "col">
                         {%if card[1] == "social" %}
@@ -161,6 +199,42 @@
                     </div>
                 {%endfor%}
             </div>
+            {%if darknet%}
+                <div class="col-lg-12 mb-4">
+                    <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
+                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    {%if resultadoDarknetNickname|length != 0 %}
+                        <p>Se encontró un total de <b>{{resultadoDarknetNickname|length}} resultados</b>.</p>
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {%for card in resultadoDarknetNickname%}
+                                <div class= "col">
+                                    <div class ="card border-info mb-3" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </h5>
+                                            <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
+                                            <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
+                                            {%if card[2] == "No description provided" %}
+                                                <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
+                                            {%else%}
+                                                <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
+                                            {%endif%}
+                                        </div>
+                                    </div>
+                                </div>
+                            {%endfor%}
+                        </div>
+                    {%else%}
+                        <div class="mb-4">
+                            <p>No existen resultados en la Darknet para este nickname.</p>
+                        </div>
+                    {%endif%}
+                </div>
+            {%endif%}
         </div>
     {% endif %}
 
@@ -331,7 +405,7 @@
                 </div>
             </div>
             <div class="col-lg-12 mb-4">
-                <h4>Datos aportados por otras fuentes</h4>
+                <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
                 <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
                 <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
                 <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
@@ -446,6 +520,77 @@
                     {%endif%}
                 </div>
             </div>
+            {%if darknet%}
+                <div class="col-lg-12 mb-4">
+                    <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
+                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <div class = "mt-3">
+                        <h6>Para el <b>email</b>:</h6>
+                        {%if resultadoDarknetEmail|length != 0 %}
+                            <p>Se encontró un total de <b>{{resultadoDarknetEmail|length}} resultados</b>.</p>
+                            <div class="row row-cols-1 row-cols-md-4 g-4">
+                                {%for card in resultadoDarknetEmail%}
+                                    <div class= "col">
+                                        <div class ="card border-info mb-3" style="width: 12 rem">
+                                            <div class="card-body">
+                                                <h5 class="card-title">
+                                                    <div class="card-header text-align:center">
+                                                        {{card[0]}} 
+                                                    </div>
+                                                </h5>
+                                                <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
+                                                <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
+                                                {%if card[2] == "No description provided" %}
+                                                    <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
+                                                {%else%}
+                                                    <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
+                                                {%endif%}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {%endfor%}
+                            </div>
+                        {%else%}
+                            <div class="mb-4">
+                                <p>No existen resultados en la Darknet para este email.</p>
+                            </div>
+                        {%endif%}
+                    </div>
+                    <div class = "mt-3">
+                        <h6>Para el <b>teléfono</b>:</h6>
+                        {%if resultadoDarknetPhone|length != 0 %}
+                            <p>Se encontró un total de <b>{{resultadoDarknetPhone|length}} resultados</b>.</p>
+                            <div class="row row-cols-1 row-cols-md-4 g-4">
+                                {%for card in resultadoDarknetPhone%}
+                                    <div class= "col">
+                                        <div class ="card border-info mb-3" style="width: 12 rem">
+                                            <div class="card-body">
+                                                <h5 class="card-title">
+                                                    <div class="card-header text-align:center">
+                                                        {{card[0]}} 
+                                                    </div>
+                                                </h5>
+                                                <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
+                                                <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
+                                                {%if card[2] == "No description provided" %}
+                                                    <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
+                                                {%else%}
+                                                    <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
+                                                {%endif%}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {%endfor%}
+                            </div>
+                        {%else%}
+                            <div class="mb-4">
+                                <p>No existen resultados en la Darknet para este teléfono.</p>
+                            </div>
+                        {%endif%}
+                    </div>
+                </div>
+            {%endif%}
+
         </div>
 
     {# solo Email#}
@@ -534,7 +679,7 @@
                 </div>
             </div>
             <div class="col-lg-12 mb-4">
-                    <h4>Datos aportados por otras fuentes</h4>
+                    <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
                     <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
                     <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
                     <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
@@ -601,6 +746,42 @@
                         </div>
                     {%endif%}
             </div>
+            {%if darknet%}
+                <div class="col-lg-12 mb-4">
+                    <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
+                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    {%if resultadoDarknetEmail|length != 0 %}
+                        <p>Se encontró un total de <b>{{resultadoDarknetEmail|length}} resultados</b>.</p>
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {%for card in resultadoDarknetEmail%}
+                                <div class= "col">
+                                    <div class ="card border-info mb-3" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </h5>
+                                            <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
+                                            <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
+                                            {%if card[2] == "No description provided" %}
+                                                <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
+                                            {%else%}
+                                                <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
+                                            {%endif%}
+                                        </div>
+                                    </div>
+                                </div>
+                            {%endfor%}
+                        </div>
+                    {%else%}
+                        <div class="mb-4">
+                            <p>No existen resultados en la Darknet para este email.</p>
+                        </div>
+                    {%endif%}
+                </div>
+            {%endif%}
         </div>
     
     {#solo Phone#}
@@ -689,7 +870,7 @@
                 </div>
             </div>
             <div class="col-lg-12 mb-4">
-                <h4>Datos aportados por otras fuentes</h4>
+                <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
                 <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
                 <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
                 <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
@@ -724,13 +905,42 @@
                     </div>
                 {%endif%}
             </div>
+            {%if darknet%}
+                <div class="col-lg-12 mb-4">
+                    <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
+                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    {%if resultadoDarknetPhone|length != 0 %}
+                        <p>Se encontró un total de <b>{{resultadoDarknetPhone|length}} resultados</b>.</p>
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {%for card in resultadoDarknetPhone%}
+                                <div class= "col">
+                                    <div class ="card border-info mb-3" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </h5>
+                                            <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
+                                            <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
+                                            {%if card[2] == "No description provided" %}
+                                                <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
+                                            {%else%}
+                                                <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
+                                            {%endif%}
+                                        </div>
+                                    </div>
+                                </div>
+                            {%endfor%}
+                        </div>
+                    {%else%}
+                        <div class="mb-4">
+                            <p>No existen resultados en la Darknet para este teléfono.</p>
+                        </div>
+                    {%endif%}
+                </div>
+            {%endif%}
         </div>
     {% endif %}
-
-    {#Darknet#}
-    {% if darknet %}
-    <p> con nombre {{nombre}} y apellidos {{apellidos}} <p>
-    <p> los resultados darknet son: {{resultadoDarknet}} <p></br>
-    {%endif%}
-
 {%endblock%}

@@ -26,6 +26,7 @@ def set_interval(func, sec):
 
 workingListINE = []
 workingListHIBP = []
+workingListAhmia = []
 
 #get the list of free proxies
 def getProxies():
@@ -66,11 +67,26 @@ def extractIHBP(proxy):
         pass
     return workingListHIBP
 
+def extractAhmia(proxy):
+    headers = {'User-Agent': randomUserAgent("utils/userAgentsList.txt")}
+    try:
+        r = requests.get("https://ahmia.fi/search/", headers=headers, proxies={'http' : proxy,'https': proxy}, timeout=1)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        #Si el titulo contiene Just a moment significa que han pillado q es un posible bot usando el proxy
+        #TODO aún el INE no ha detectado que fuera un bot entonces aun no se como actua ante estos casos y html es por eso aun esta copiado del ScrapingHIBP
+        if(soup.title.string == "Just a moment..."):
+            raise Exception("Err")
+        workingListAhmia.append(proxy)
+    except requests.exceptions.RequestException as err:
+        pass
+    return workingListAhmia
+
 proxylist = getProxies()
 
 with concurrent.futures.ThreadPoolExecutor() as executor:
         executor.map(extractINE, proxylist)
         executor.map(extractIHBP, proxylist)
+        executor.map(extractAhmia, proxylist)
 
 with open("utils\Proxies\workingproxylistHIBP.txt", "w") as file:
     for proxy in workingListHIBP:
@@ -79,5 +95,10 @@ with open("utils\Proxies\workingproxylistHIBP.txt", "w") as file:
 
 with open("utils\Proxies\workingproxylistINE.txt", "w") as file:
     for proxy in workingListINE:
+        file.write(proxy + "\n")
+    file.close()
+
+with open("utils\Proxies\workingproxylistAhmia.txt", "w") as file:
+    for proxy in workingListAhmia:
         file.write(proxy + "\n")
     file.close()

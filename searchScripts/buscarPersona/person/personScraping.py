@@ -190,10 +190,13 @@ class GoogleScrapingPerson():
 
         api_result = requests.get('https://api.scaleserp.com/search', self.params, headers=self.headers)
         results = api_result.json()
-        if results["organic_results"]:
-            return results["organic_results"]
-        else:
+        
+        try:
+            results["organic_results"]
+        except:
             return []
+        else:
+            return results["organic_results"]
 
     def getDataSurnameName(self, name="",surname="", city=""):
         if(name != "" and surname != ""):
@@ -222,6 +225,7 @@ class GoogleScrapingPerson():
         #Estructura de los datos:
         #organicresults
         #[[dominio, link, titulo],....]
+        print("Searching for " + name +" "+ surname +" "+ city)
         searchResultsNameSurname = []
         searchResultsSurnameName = []
         rawDataNameSurname = self.getDataNameSurname(name,surname,city)
