@@ -21,6 +21,10 @@ def randomProxyServer(filename):
 class AhmiaScraping:
     def make_request(self, url):
         proxy = randomProxyServer("utils\Proxies\workingproxylistINE.txt")
+        if proxy != None:
+            print(f"Scraping Ahmia with proxy: {proxy} for {url}")
+        else:
+            print(f"Scraping HIBP with no proxy available for {url}")   
         payload= {}
         headers = {
         'timeout': '2.5',

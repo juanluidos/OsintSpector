@@ -178,6 +178,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -214,6 +215,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -276,6 +278,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nonickname email city darknet phone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -317,6 +320,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nonickname email nocity darknet phone"
+
                             else:
                                 if city:
                                     #INE nombre
@@ -332,6 +336,7 @@ def result():
                                     resultadosGoogleSearch = hp.parseData(name = nombre, surname= apellidos, city=city)
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -363,6 +368,7 @@ def result():
                                     resultadosGoogleSearch = hp.parseData(name= nombre,surname=apellidos)
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -379,6 +385,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nonickname noemail nocity darknet phone"
+
                     else:
                         if nickname:
                             if email:
@@ -412,7 +419,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaNicknameUri = f"?q={nickname}".replace(" ", "+")
                                     AhmiaEmailUri =f"?q={email}".replace(" ", "+")
                                     AhmiaPhoneUri = f"?q={phone}".replace(" ", "+")
@@ -421,8 +428,6 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
-
-                                    print(resultadoDarknetNombre)
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nickname email city darknet phone"
@@ -471,6 +476,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -479,7 +485,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaNicknameUri = f"?q={nickname}".replace(" ", "+")
                                     AhmiaPhoneUri = f"?q={phone}".replace(" ", "+")
 
@@ -489,6 +495,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nickname noemail city darknet phone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -502,6 +509,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -510,7 +518,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaNicknameUri = f"?q={nickname}".replace(" ", "+")
                                     AhmiaPhoneUri = f"?q={phone}".replace(" ", "+")
 
@@ -520,6 +528,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nickname noemail nocity darknet phone"
+
                         else:
                             if email:
                                 if city:
@@ -549,7 +558,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaEmailUri =f"?q={email}".replace(" ", "+")
                                     AhmiaPhoneUri = f"?q={phone}".replace(" ", "+")
 
@@ -559,6 +568,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nonickname email city darknet phone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -586,7 +596,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaEmailUri =f"?q={email}".replace(" ", "+")
                                     AhmiaPhoneUri = f"?q={phone}".replace(" ", "+")
 
@@ -596,6 +606,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nonickname email nocity darknet phone"
+
                             else:
                                 if city:
                                     #INE nombre
@@ -607,6 +618,7 @@ def result():
                                     resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -615,7 +627,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaPhoneUri = f"?q={phone}".replace(" ", "+")
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
@@ -633,6 +645,7 @@ def result():
                                     resultadosGoogleSearch = hp.parseData(name=nombre)
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -641,7 +654,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaPhoneUri = f"?q={phone}".replace(" ", "+")
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
@@ -752,6 +765,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -784,6 +798,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -1013,6 +1028,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -1253,11 +1269,6 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    uriUrlAhmia = f"?q={nombre}+{apellidos}".replace(" ", "+")
-                                    resultadoDarknet = hp.parseHTML(baseUrlAhmia+uriUrlAhmia)
-
-                                    #Darknet Scraping
-                                    hp = AhmiaScraping()
                                     AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
                                     AhmiaNicknameUri = f"?q={nickname}".replace(" ", "+")
 
@@ -1430,7 +1441,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaNicknameUri = f"?q={nickname}".replace(" ", "+")
                                     AhmiaEmailUri =f"?q={email}".replace(" ", "+")
 
@@ -1463,7 +1474,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaNicknameUri = f"?q={nickname}".replace(" ", "+")
                                     AhmiaEmailUri =f"?q={email}".replace(" ", "+")
 
@@ -1489,7 +1500,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaNicknameUri = f"?q={nickname}".replace(" ", "+")
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
@@ -1512,7 +1523,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaNicknameUri = f"?q={nickname}".replace(" ", "+")
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
@@ -1542,7 +1553,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaEmailUri =f"?q={email}".replace(" ", "+")
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
@@ -1570,7 +1581,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
                                     AhmiaEmailUri =f"?q={email}".replace(" ", "+")
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
@@ -1591,7 +1602,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
 
@@ -1609,7 +1620,7 @@ def result():
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
-                                    AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
+                                    AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
 
@@ -2065,6 +2076,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -2091,6 +2103,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -2133,6 +2146,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nonickname email city nodarknet phone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -2164,6 +2178,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nonickname email nocity nodarknet phone"
+
                             else:
                                 if city:
                                     #INE nombre
@@ -2179,6 +2194,7 @@ def result():
                                     resultadosGoogleSearch = hp.parseData(name = nombre, surname= apellidos, city=city)
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -2209,6 +2225,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nonickname noemail nocity nodarknet phone"
+
                     else:
                         if nickname:
                             if email:
@@ -2242,6 +2259,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname email city nodarknet phone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -2272,6 +2290,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname email nocity nodarknet phone"
+
                             else:
                                 if city:
                                     #INE nombre
@@ -2294,6 +2313,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname noemail city nodarknet phone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -2307,6 +2327,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -2315,6 +2336,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname noemail nocity nodarknet phone"
+
                         else:
                             if email:
                                 if city:
@@ -2344,6 +2366,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nonickname email city nodarknet phone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -2371,6 +2394,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nonickname email nocity nodarknet phone"
+
                             else:
                                 if city:
                                     #INE nombre
@@ -2382,6 +2406,7 @@ def result():
                                     resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -2390,6 +2415,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nonickname noemail city nodarknet phone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -2400,6 +2426,7 @@ def result():
                                     resultadosGoogleSearch = hp.parseData(name=nombre)
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -2408,6 +2435,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nonickname noemail nocity nodarknet phone"
+
                 else:
                     if apellidos:
                         if nickname:
@@ -2442,6 +2470,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nickname email city nodarknet phone"
+
                                 else:
                                     #INE apellido
                                     apellid = INEScrapingSurName()
@@ -2472,6 +2501,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nickname email nocity nodarknet phone"
+
                             else:
                                 if city:
                                     #INE apellido
@@ -2494,6 +2524,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nickname noemail city nodarknet phone"
+
                                 else:
                                     #INE apellido
                                     apellid = INEScrapingSurName()
@@ -2507,6 +2538,7 @@ def result():
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -2515,6 +2547,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nickname noemail nocity nodarknet phone"
+
                         else:
                             if email:
                                 if city:
@@ -2544,6 +2577,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nonickname email city nodarknet phone"
+
                                 else:
                                     #INE apellido
                                     apellid = INEScrapingSurName()
@@ -2571,6 +2605,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nonickname email nocity nodarknet phone"
+
                             else:
                                 if city:
                                     #INE apellido
@@ -2591,6 +2626,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)                        
                                     #return "nonombre apellido nonickname noemail city nodarknet phone"
+
                                 else:
                                     #INE apellido
                                     apellid = INEScrapingSurName()
@@ -2610,6 +2646,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nonickname noemail nocity nodarknet phone"
+
                     else:
                         if nickname:
                             if email:
@@ -2635,6 +2672,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nickname email city nodarknet phone"
+
                                 else:
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
@@ -2657,12 +2695,14 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nickname email nocity nodarknet phone"
+
                             else:
                                 if city:
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Phone intelx
+                                    intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
 
                                     #Phone HIBPwned API
@@ -2671,6 +2711,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre noapellido nickname noemail city nodarknet phone"
+
                                 else:
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
@@ -2685,11 +2726,10 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #nonombre noapellido nickname noemail nocity nodarknet phone
+
                         else:
                             if email:
                                 if city:
-                                    #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Email intelx
                                     intel = intelx()
@@ -2708,9 +2748,8 @@ def result():
 
                                     return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre noapellido nonickname email city nodarknet phone"
+
                                 else:
-                                    #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     #Email intelx
                                     intel = intelx()
@@ -2729,9 +2768,9 @@ def result():
 
                                     return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nonickname email nocity nodarknet phone"
+
                             else:
                                 if city:
-
                                     #Phone intelx
                                     intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
@@ -2742,8 +2781,8 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre noapellido nonickname noemail city nodarknet phone"
-                                else:
 
+                                else:
                                     #Phone intelx
                                     intel = intelx()
                                     resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
@@ -2754,6 +2793,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nonickname noemail nocity nodarknet phone"
+
             else:
                 if nombre:
                     if apellidos:
@@ -2830,12 +2870,7 @@ def result():
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
-                                    #Darknet Scraping
-                                    hp = AhmiaScraping()
-                                    uriUrlAhmia = f"?q={nombre}+{apellidos}".replace(" ", "+")
-                                    resultadoDarknet = hp.parseHTML(baseUrlAhmia+uriUrlAhmia)
-
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname, darknet=darknet, resultadoDarknet=resultadoDarknet)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
                                     #return "nombre apellido nickname noemail city nodarknet nophone"
 
                                 else:
@@ -2853,7 +2888,6 @@ def result():
 
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
                                     #return "nombre apellido nickname noemail nocity nodarknet nophone"
@@ -2881,9 +2915,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre apellido nonickname email city nodarknet nophone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -2905,9 +2939,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre apellido nonickname email nocity nodarknet nophone"
+
                             else:
                                 if city:
                                     #INE nombre
@@ -2922,9 +2956,9 @@ def result():
                                     hp = GoogleScrapingPerson()
                                     resultadosGoogleSearch = hp.parseData(name = nombre, surname= apellidos, city=city)
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch)
                                     #return "nombre apellido nonickname noemail city nodarknet nophone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -2938,9 +2972,9 @@ def result():
                                     hp = GoogleScrapingPerson()
                                     resultadosGoogleSearch = hp.parseData(name= nombre,surname=apellidos)
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch)
                                     #return "nombre apellido nonickname noemail nocity nodarknet nophone"
+
                     else:
                         if nickname:
                             if email:
@@ -2964,9 +2998,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nickname email city nodarknet nophone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -2987,9 +3021,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nickname email nocity nodarknet nophone"
+
                             else:
                                 if city:
                                     #INE nombre
@@ -3003,9 +3037,9 @@ def result():
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
                                     #return "nombre noapellido nickname noemail city nodarknet nophone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -3018,9 +3052,9 @@ def result():
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
                                     #return "nombre noapellido nickname noemail nocity nodarknet nophone"
+
                         else:
                             if email:
                                 if city:
@@ -3040,9 +3074,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nonickname email city nodarknet nophone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -3060,9 +3094,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nonickname email nocity nodarknet nophone"
+
                             else:
                                 if city:
                                     #INE nombre
@@ -3073,9 +3107,9 @@ def result():
                                     hp = GoogleScrapingPerson()
                                     resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
 
-
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch)
                                     #return "nombre noapellido nonickname noemail city nodarknet nophone"
+
                                 else:
                                     #INE nombre
                                     ine = INEScrapingName()
@@ -3088,6 +3122,7 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch)
                                     #return "nombre noapellido nonickname noemail nocity nodarknet nophone"
+
                 else:
                     if apellidos:
                         if nickname:
@@ -3112,9 +3147,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nickname email city nodarknet nophone"
+
                                 else:
                                     #INE apellido
                                     apellid = INEScrapingSurName()
@@ -3135,9 +3170,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nickname email nocity nodarknet nophone"
+
                             else:
                                 if city:
                                     #INE apellido
@@ -3151,9 +3186,9 @@ def result():
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
-
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
                                     #return "nonombre apellido nickname noemail city nodarknet nophone"
+
                                 else:
                                     #INE apellido
                                     apellid = INEScrapingSurName()
@@ -3166,9 +3201,9 @@ def result():
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
-
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
                                     #return "nonombre apellido nickname noemail nocity nodarknet nophone"
+
                         else:
                             if email:
                                 if city:
@@ -3188,9 +3223,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nonickname email city nodarknet nophone"
+
                                 else:
                                     #INE apellido
                                     apellid = INEScrapingSurName()
@@ -3208,9 +3243,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nonickname email nocity nodarknet nophone"
+
                             else:
                                 if city:
                                     #INE apellido
@@ -3221,16 +3256,9 @@ def result():
                                     hp = GoogleScrapingPerson()
                                     resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
 
-                                    #Phone intelx
-                                    intel=intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
-
-                                    #Phone HIBPwned API
-                                    hp = HIBPApi(os.getenv('API_KEY_IHBP'))
-                                    resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
-
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch)                        
                                     #return "nonombre apellido nonickname noemail city nodarknet nophone"
+
                                 else:
                                     #INE apellido
                                     apellid = INEScrapingSurName()
@@ -3240,16 +3268,9 @@ def result():
                                     hp = GoogleScrapingPerson()
                                     resultadosGoogleSearch = hp.parseData(surname=apellidos)
 
-                                    #Phone intelx
-                                    intel=intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
-
-                                    #Phone HIBPwned API
-                                    hp = HIBPApi(os.getenv('API_KEY_IHBP'))
-                                    resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
-
                                     return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch)
                                     #return "nonombre apellido nonickname noemail nocity nodarknet nophone"
+
                     else:
                         if nickname:
                             if email:
@@ -3265,9 +3286,9 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-
                                     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #"nonombre noapellido nickname email city nodarknet nophone"
+
                                 else:
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
@@ -3283,26 +3304,25 @@ def result():
 
                                     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #"nonombre noapellido nickname email nocity nodarknet nophone"
+
                             else:
                                 if city:
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
-
                                     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname)
                                     #return "nonombre noapellido nickname noemail city nodarknet nophone"
+
                                 else:
                                     #Nickname
                                     resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
 
                                     return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname)
-                                    #nonombre noapellido nickname noemail nocity nodarknetnophone
+                                    #nonombre noapellido nickname noemail nocity nodarknet nophone
+
                         else:
                             if email:
                                 if city:
-                                    #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
                                     #Email intelx
                                     intel = intelx()
                                     resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
@@ -3310,14 +3330,10 @@ def result():
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
-                                    sleep(7)
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre noapellido nonickname email city nodarknet nophone"
                                 else:
-                                    #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
                                     #Email intelx
                                     intel = intelx()
                                     resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
@@ -3325,9 +3341,8 @@ def result():
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
-                                    sleep(7)
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #"nonombre noapellido nonickname email nocity nodarknet nophone"
                             else:
                                 if city:

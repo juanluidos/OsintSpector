@@ -13,9 +13,9 @@
 {%block contentRow%}
 
     {#NOMBRE Y APELLIDOS#}
+    {% if nombre or apellidos%}
         {#INE#}
-    <div class="text-justify mb-4">
-        {% if nombre or apellidos%}
+        <div class="text-justify mb-4">
             <h3>Resultados de búsqueda para la persona: <b>{{nombre}} {{apellidos}}</b>.</h3>
             <div id="ine">
                 {% if nombre%}
@@ -35,13 +35,11 @@
                         {%endfor%}
                     </div>
                 {%endif %}
-            {%endif%}
+            </div>
         </div>
-    </div>
 
         {#Google Search Custom#}
-    <div id="googleSearch">
-        {% if nombre or apellidos%}
+        <div id="googleSearch">
             <h5>La información encontrada en internet sobre {{nombre}} {{apellidos}} es la siguiente: </h5>
             {%if resultadosGoogleSearch|length !=0 %}
             <div class="row row-cols-1 row-cols-md-4 g-4">
@@ -109,8 +107,8 @@
                     {%endif%}
                 </div>
             {%endif%}
-        {%endif%}
-    </div>
+        </div>
+    {%endif%}
 
     {#Nickname#}
     {% if nickname %}
@@ -247,6 +245,7 @@
             </div>
             <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por IntelX</h4>
+                <p>En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
                 <div class = "mt-3">
                     <h6>Para el <b>email</b>:</h6>
                     {%if resultadosIntelxEmail|length !=0 %}
@@ -602,6 +601,7 @@
             </div>
             <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por IntelX</h4>
+                <p>En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
                 {%if resultadosIntelxEmail|length !=0 %}
                 <div class="row row-cols-1 row-cols-md-4 g-4">
                     {%for card in resultadosIntelxEmail%}
@@ -793,9 +793,10 @@
             </div>
             <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por IntelX</h4>
+                <p>En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más información sobre esta página clicka en el link.</p>
                 {%if resultadosIntelxPhone|length !=0 %}
                 <div class="row row-cols-1 row-cols-md-4 g-4">
-                    {%for card in resultadosIntelxEmail%}
+                    {%for card in resultadosIntelxPhone%}
                         <div class= "col">
                             {%if card.get('media') == "CSV File" %}
                                 <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
