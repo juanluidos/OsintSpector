@@ -1,8 +1,11 @@
 import asyncio
+import base64
 import os
 import sys
 from time import sleep
 from flask import Flask, flash, redirect, url_for, render_template, request
+import pandas as pd
+from searchScripts.twitter.pruebaLibreria import CommunityGraph, GrafoTopInteracciones, WordCloudGenerator
 from utils.Intelx.intelexapi import intelx
 from searchScripts.buscarPersona.darknet.darkScraping import AhmiaScraping
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
@@ -3375,6 +3378,39 @@ set_interval(runProxyScript,1800)
 # @app.route("/admin/")
 # def admin():
 #     return redirect(url_for("user", name="Admin!"))
+
+# Ruta para generar la wordcloud
+
+@App.route('/wordcloud')
+def wordcloud():
+    # Instanciar la clase WordCloudGenerator
+    w = WordCloudGenerator()
+
+    # Generar la wordcloud
+    tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv")
+    img_path = w.generar_wordcloud(tweets_df1['Text'])
+
+    # Codificar la imagen en base64
+    with open(img_path, 'rb') as f:
+        img_data = f.read()
+    img_data_b64 = base64.b64encode(img_data).decode('utf-8')
+
+    # Eliminar imagen temporal
+    os.remove(img_path)
+
+    # Enviar respuesta al cliente
+    return render_template('wordcloud.html', img_path=img_path, img_data=img_data_b64)
+
+@App.route('/grafoInteracciones')
+def grafoInteracciones():
+    tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv", sep=",")
+    # Crear una instancia de la clase CommunityGraph
+    w = GrafoTopInteracciones(tweets_df1["Text"])
+    # Obtener los nodos y las conexiones del grafo
+    lista_tuplas = w.contar_interacciones()
+    # Renderizar la plantilla HTML con los datos del grafo
+    return render_template('grafoInteracciones.html', lista_tuplas = lista_tuplas)
+
 
 if __name__ == "__main__":
     App.secret_key = os.getenv('APP_KEY')

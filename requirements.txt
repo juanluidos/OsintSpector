@@ -23,3 +23,8 @@ urllib3
 requests
 flask
 google-api-python-client
+nltk
+matplotlib
+wordcloud
+unidecode
+scipy
