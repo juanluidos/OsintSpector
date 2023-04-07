@@ -28,3 +28,5 @@ matplotlib
 wordcloud
 unidecode
 scipy
+transformers
+torch

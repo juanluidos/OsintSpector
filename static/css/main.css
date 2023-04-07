@@ -11314,4 +11314,35 @@ background-color: #FAB3A9!important;
   .d-print-none {
     display: none !important;
   }
+  .contenedor-Darknet {
+    border: 2px solid #000;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  
+  .titulo-Darknet {
+    display: flex;
+    align-items: center;
+  }
+  
+  .boton-minimizar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+  
+  #icono-minimizar {
+    font-size: 24px;
+  }
+  
+  .contenido-Darknet {
+    padding: 20px;
+  } 
+
+  #chart {
+    width: 100%;
+  }
 }

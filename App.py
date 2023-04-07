@@ -5,12 +5,11 @@ import sys
 from time import sleep
 from flask import Flask, flash, redirect, url_for, render_template, request
 import pandas as pd
-from searchScripts.twitter.pruebaLibreria import CommunityGraph, GrafoTopInteracciones, WordCloudGenerator
+from searchScripts.twitter.pruebaLibreria import CommunityGraph, GrafoTopInteracciones, Localizaciones, SentimentalAnalysis, WordCloudGenerator
 from utils.Intelx.intelexapi import intelx
 from searchScripts.buscarPersona.darknet.darkScraping import AhmiaScraping
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
 from searchScripts.buscarPersona.emailPhone.hibpApi import HIBPApi
-from searchScripts.buscarPersona.emailPhone.emailPhoneIHBP import HIBPScraping
 from searchScripts.buscarPersona.person.personScraping import GoogleScrapingPerson, INEScrapingName, INEScrapingSurName
 from subprocess import Popen, PIPE
 
@@ -3368,9 +3367,6 @@ def result():
         return redirect("index.html")
         
 
-#Subprocess to refresh the working free proxies available
-set_interval(runProxyScript,1800)
-
 # @app.route("/<name>")
 # def user(name):
 #     return f"Hello {name}!"
@@ -3411,6 +3407,39 @@ def grafoInteracciones():
     # Renderizar la plantilla HTML con los datos del grafo
     return render_template('grafoInteracciones.html', lista_tuplas = lista_tuplas)
 
+@App.route('/sentimental')
+def sentimental():
+    tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv", sep=",")
+    q = SentimentalAnalysis(tweets_df1[["Text","Url"]])
+    tupla_analisis = q.analizarTweets()
+    emotions = tupla_analisis[0]
+    topTweets = tupla_analisis[1]
+    listaTopTweets = []
+    for emotion, data in topTweets.items():
+        score = data['score']
+        tweet = data['tweet']
+        link = data['link']
+        listaTopTweets.append((emotion, score, tweet, link))
+
+    # Eliminar datos de la memoria dedicada de la GPU para liberar espacio
+    del tupla_analisis
+
+    return render_template('sentimental.html', emotions=emotions, listaTopTweets=listaTopTweets)
+
+# @App.route('grafoComunidad')
+# def grafoComunidad():
+
+#     return render_template('grafoComunidad.html')
+
+@App.route('/locations')
+def locations():
+    tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv")
+    localizaciones = Localizaciones(tweets_df1)
+    data = localizaciones.esquema_localizaciones()
+    return render_template('locations.html', data=data)
+
+#Subprocess to refresh the working free proxies available
+set_interval(runProxyScript,1800)
 
 if __name__ == "__main__":
     App.secret_key = os.getenv('APP_KEY')

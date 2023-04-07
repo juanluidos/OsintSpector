@@ -35,9 +35,12 @@
 from collections import Counter, defaultdict
 import itertools
 import json
+import math
 import os
 import tempfile
+import time
 import unicodedata
+import requests
 from unidecode import unidecode
 from wordcloud import WordCloud, STOPWORDS
 import re
@@ -49,14 +52,15 @@ import nltk
 nltk.download('stopwords')
 nltk.download('punkt')
 from nltk.corpus import stopwords
-
+from dotenv import load_dotenv
+load_dotenv()
 
 # # Creating list to append tweet data to
 # tweets_list1 = []
 
 # # Using TwitterSearchScraper to scrape data and append tweets to list
 # for i,tweet in enumerate(sntwitter.TwitterSearchScraper('from:JotaroKullons').get_items()):
-#     if i>=6000:
+#     if i>=7000:
 #         break
 #     tweets_list1.append([tweet.date, tweet.id, tweet.rawContent, tweet.url, tweet.place])
     
@@ -223,7 +227,7 @@ class CommunityGraph:
         nx.draw_networkx(self.G, pos=pos, node_color=node_color, cmap='tab20', with_labels=True, node_size=800)
         plt.show()
 
-class CommunityGraph2:
+class GrafoComunidad:
     def __init__(self, dataframe):
         self.G = nx.Graph()
         self.dataframe = dataframe
@@ -290,11 +294,11 @@ class CommunityGraph2:
         plt.show()
 
 # Crear una instancia de la clase CommunityGraph con el dataframe
-my_graph = CommunityGraph2(tweets_df1["Text"])
-my_graph.obtener_interacciones()
+# my_graph = CommunityGraph(tweets_df1["Text"])
+# my_graph.obtener_interacciones()
 
-my_graph.show_graph_Spring()
-my_graph.show_graph_KamadaKawai()
+# my_graph.show_graph_Spring()
+# my_graph.show_graph_KamadaKawai()
 
 
 class GrafoTopInteracciones:
@@ -317,6 +321,89 @@ class GrafoTopInteracciones:
         topInteracciones = sorted(interacciones.items(), key=lambda x: x[1], reverse=True)[:30]
         return topInteracciones
     
-w = GrafoTopInteracciones(tweets_df1["Text"])
+# w = GrafoTopInteracciones(tweets_df1["Text"])
 
-print(w.contar_interacciones())
+# print(w.contar_interacciones())
+
+
+import os
+import concurrent.futures
+import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+class SentimentalAnalysis:
+    def __init__(self, dataframe):
+        # Inicialización de las variables necesarias
+        self.modelo = "MilaNLProc/xlm-emo-t" # Nombre del modelo
+        self.tokenizer = AutoTokenizer.from_pretrained(self.modelo) # Tokenizador del modelo
+        self.device = "cuda" if torch.cuda.is_available() else "cpu" # Comprobar si GPU está disponible
+        self.model = AutoModelForSequenceClassification.from_pretrained(self.modelo).to(self.device) # Modelo de clasificación de sentimientos
+        self.dataframe = dataframe # Dataframe de tweets
+        self.listaTweetsLink = self.dataframe.values.tolist() # Lista de tweets con su link
+        self.emotions = self.model.config.id2label.values() # Lista de emociones del modelo
+        self.tweets_with_top_emotion = {emotion: {'score': 0, 'tweet': '', 'link': ''} for emotion in self.emotions} # Diccionario que almacena los tweets con mayor puntuación de cada emoción
+
+    def analizarTweet(self, tweet, link):
+        # Procesamiento de un tweet
+        inputs = self.tokenizer(tweet, return_tensors="pt").to(self.device) # Tokenización y envío del tweet al dispositivo disponible
+        outputs = self.model(**inputs) # Clasificación del tweet
+        logits = outputs.logits # Obtención de los logits, vectores con las predicciones en crudo que la clasificación del modelo genera, pero que aún necesita pasarle una función para normalizar dichos valores
+        scores = torch.softmax(logits, dim=1).tolist()[0] # Cálculo de las probabilidades usando la función de softmax
+        labels = self.model.config.id2label # Etiquetas de las emociones
+        sentiment_result = [{'label': labels[i], 'score': scores[i]} for i in range(len(labels))] # Resultado de la clasificación del tweet
+
+        top_sentiment = max(sentiment_result, key=lambda x: x['score']) # Obtener la emoción con la probabilidad más alta
+        for emotion in self.emotions:
+            if top_sentiment['label'] == emotion and top_sentiment['score'] > self.tweets_with_top_emotion[emotion]['score']:
+                self.tweets_with_top_emotion[emotion]['score'] = top_sentiment['score']
+                self.tweets_with_top_emotion[emotion]['tweet'] = tweet
+                self.tweets_with_top_emotion[emotion]['link'] = link
+        #Los resultados de clasificacion son una tupla, la primera parte es el analisis de cada tweet con su emocion asignada, la segunda parte los tweets con el mayor score de las distintas emociones
+        # return {'tweet': tweet, 'sentiment': top_sentiment['label'], 'sentiment_score': top_sentiment['score']} # Retornar los resultados de clasificación
+        return top_sentiment['label']# Retornar los resultados de clasificación
+
+    def analizarTweets(self):
+        # Procesamiento de múltiples tweets
+        tweets_analysis = [] # Lista de análisis de tweets
+        with concurrent.futures.ThreadPoolExecutor() as executor: # Inicialización de los hilos
+            futures = [] #lista de objetos futuros que representa el resultado de la funcion analizarTweet
+            for tweet,link in self.listaTweetsLink:
+                futures.append(executor.submit(self.analizarTweet, tweet, link)) # Envío del tweet a la función de análisis de tweet
+            for future in concurrent.futures.as_completed(futures):
+                tweet_analysis = future.result() # Obtención de los resultados de análisis
+                tweets_analysis.append(tweet_analysis) # Añadir el resultado a la lista de análisis de tweets
+            
+        return tweets_analysis, self.tweets_with_top_emotion # Retornar los resultados de análisis de tweets y los tweets con mayor puntuación de cada emoción
+
+
+# q = SentimentalAnalysis(tweets_df1[["Text","Url"]])
+# start = time.time()
+# print(q.analizarTweets())
+# end = time.time()
+# print("\n")
+# print(end - start)
+
+class Localizaciones:
+    def __init__(self, dataframe):
+        self.dataframe = dataframe
+    #La variable data es una lista de diccionarios. Cada diccionario representa una fila de datos, y las claves del diccionario corresponden a los nombres de las 
+    # columnas del DataFrame que se guardará en el archivo CSV. En este caso, las columnas son location, datetime y url.
+    def esquema_localizaciones(self):
+        df = self.dataframe.groupby('Location').agg({'Datetime': list, 'Url': list})
+        data = [] 
+        for index, group in df.iterrows():
+            #El objeto Place se guarda como string y solo queremos guardar el valor fullName="----", por tanto tendremos que usar la libreria re
+            location = re.search(r"fullName='(.+?)'", index).group(1)
+            map = re.search(r"name='(.+?)'", index).group(1)
+            data.append({
+                'location': location, 
+                'datetime': group['Datetime'],
+                'url': group['Url'],
+                'maps': f"https://www.google.com/maps/place/{map}",
+            })
+        return data
+
+# Ejemplo de uso
+localizaciones = Localizaciones(tweets_df1)
+data = localizaciones.esquema_localizaciones()
+print(data)
