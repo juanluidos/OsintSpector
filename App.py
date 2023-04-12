@@ -5,6 +5,7 @@ import sys
 from time import sleep
 from flask import Flask, flash, redirect, url_for, render_template, request
 import pandas as pd
+from searchScripts.twitter.busquedaTwitter import busquedaTwitter
 from searchScripts.twitter.pruebaLibreria import CommunityGraph, GrafoTopInteracciones, Localizaciones, SentimentalAnalysis, WordCloudGenerator
 from utils.Intelx.intelexapi import intelx
 from searchScripts.buscarPersona.darknet.darkScraping import AhmiaScraping
@@ -46,7 +47,53 @@ def buscarPersonaTwitter():
 
 @App.route("/resultTwitter", methods=["POST", "GET"])
 def resultTwitter():
-    return render_template("index.html")    
+    if request.method == 'POST':
+        userForm = request.form["usuario"]
+        usuario = userForm.replace("@","")
+
+        #Llamada a la clase Padre
+        busqueda = busquedaTwitter(usuario, 2500)
+        resultado = busqueda.resultadoBusqueda()
+
+        #WORDCLOUD
+        # Generar la wordcloud
+        img_path = resultado["wordcloud"]
+        # Codificar la imagen en base64
+        with open(img_path, 'rb') as f:
+            img_data = f.read()
+        img_data_b64 = base64.b64encode(img_data).decode('utf-8')
+        # Eliminar imagen temporal
+        os.remove(img_path)
+
+        #GRAFO TOP
+        listaTuplasTop = resultado["grafoTop"]
+
+        #GRAFO COMUNIDAD
+        #por consultar antes de nada
+
+        #SENTIMENTAL ANALYSIS
+        tupla_analisis = resultado["sentimentalAnalysis"]
+        emotions = tupla_analisis[0]
+        topTweets = tupla_analisis[1]
+        listaTopTweets = []
+        for emotion, data in topTweets.items():
+            score = data['score']
+            tweet = data['tweet']
+            link = data['link']
+            listaTopTweets.append((emotion, score, tweet, link))
+        # Eliminar datos de la memoria dedicada de la GPU para liberar espacio
+        del tupla_analisis
+
+        #LOCATIONS
+        localizaciones = resultado["locations"]
+
+        # Enviar respuesta al cliente
+        return render_template("resultadosBusquedaTwitter.html",usuario=usuario, img_data=img_data_b64, listaTuplasTop = listaTuplasTop, listaTopTweets = listaTopTweets, emotions = emotions, localizaciones = localizaciones)
+    
+    else:
+        #si es metodo GET
+        #quizás añadir 404.html en lugar de redirect
+        return redirect("index.html")
 
 @App.route("/result", methods=["POST", "GET"])
 def result():
@@ -3365,17 +3412,6 @@ def result():
         #si es metodo GET
         #quizás añadir 404.html en lugar de redirect
         return redirect("index.html")
-        
-
-# @app.route("/<name>")
-# def user(name):
-#     return f"Hello {name}!"
-
-# @app.route("/admin/")
-# def admin():
-#     return redirect(url_for("user", name="Admin!"))
-
-# Ruta para generar la wordcloud
 
 @App.route('/wordcloud')
 def wordcloud():
@@ -3395,7 +3431,7 @@ def wordcloud():
     os.remove(img_path)
 
     # Enviar respuesta al cliente
-    return render_template('wordcloud.html', img_path=img_path, img_data=img_data_b64)
+    return render_template('wordcloud.html', img_data=img_data_b64)
 
 @App.route('/grafoInteracciones')
 def grafoInteracciones():
@@ -3434,12 +3470,12 @@ def sentimental():
 @App.route('/locations')
 def locations():
     tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv")
-    localizaciones = Localizaciones(tweets_df1)
-    data = localizaciones.esquema_localizaciones()
-    return render_template('locations.html', data=data)
+    a = Localizaciones(tweets_df1)
+    localizaciones = a.esquema_localizaciones()
+    return render_template('locations.html', localizaciones=localizaciones)
 
 #Subprocess to refresh the working free proxies available
-set_interval(runProxyScript,1800)
+set_interval(runProxyScript,3600)
 
 if __name__ == "__main__":
     App.secret_key = os.getenv('APP_KEY')

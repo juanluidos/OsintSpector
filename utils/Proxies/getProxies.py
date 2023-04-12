@@ -35,9 +35,9 @@ def getProxies():
     table = soup.find('tbody')
     proxies = []
     for row in table:
-        # if row.find_all('td')[4].text =='elite proxy' or row.find_all('td')[4].text =='transparent':
-        proxy = ':'.join([row.find_all('td')[0].text, row.find_all('td')[1].text])
-        proxies.append(proxy)
+        if row.find_all('td')[4].text =='elite proxy' or row.find_all('td')[4].text =='transparent':
+            proxy = ':'.join([row.find_all('td')[0].text, row.find_all('td')[1].text])
+            proxies.append(proxy)
     return proxies
 
 def extractINE(proxy):

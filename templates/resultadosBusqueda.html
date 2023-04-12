@@ -35,7 +35,7 @@
       });
       
 </script>
-
+<div class="container px-1">
     {#NOMBRE Y APELLIDOS#}
     {% if nombre or apellidos%}
         {#INE#}
@@ -45,9 +45,9 @@
                 {% if nombre%}
                     <div id="nombreIne" class="mb-2">
                         {%if resultadosINEName is string%}
-                        <p> El total de personas en toda España con el mismo nombre es menor de 20</p>
+                        <p style="text-align:justify"> El total de personas en toda España con el mismo nombre es menor de 20</p>
                         {%else%}
-                        <p> El total de personas en toda España con el mismo nombre es de {{resultadosINEName[0]}} con una media de edad de {{resultadosINEName[1]}} años</p>
+                        <p style="text-align:justify"> El total de personas en toda España con el mismo nombre es de {{resultadosINEName[0]}} con una media de edad de {{resultadosINEName[1]}} años</p>
                         {%endif%}
                     </div>
                 {%endif %}
@@ -55,7 +55,7 @@
                 {% if apellidos%}
                     <div id="apellidosIne" class="mb-2">
                         {%for apellido in resultadosINESurname%}
-                            <p> El total de personas en toda España con el apellido {{apellido[0]}} como {{apellido[2]}} apellido es de: {{apellido[1]}} </p>
+                            <p style="text-align:justify"> El total de personas en toda España con el apellido {{apellido[0]}} como {{apellido[2]}} apellido es de: {{apellido[1]}} </p>
                         {%endfor%}
                     </div>
                 {%endif %}
@@ -91,7 +91,7 @@
             </div>
             {%else%}
                 <div class="mb-4">
-                    <p><b>No existen datos en internet sobre esta persona.</b></p>
+                    <p style="text-align:justify"><b>No existen datos en internet sobre esta persona.</b></p>
                 </div>
             {%endif%}
 
@@ -105,10 +105,10 @@
                             </button>
                         </div>
                         <div class="contenido-Darknet" id="contenido-Darknet-1">
-                            <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
-                            <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                            <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                            <p style="text-align:justify">Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
                             {%if resultadoDarknetNombre|length != 0 %}
-                                <p>Se encontró un total de <b>{{resultadoDarknetNombre|length}} resultados</b>.</p>
+                                <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetNombre|length}} resultados</b>.</p>
                                 <div class="row row-cols-1 row-cols-md-4 g-4">
                                     {%for card in resultadoDarknetNombre%}
                                         <div class= "col">
@@ -133,7 +133,7 @@
                                 </div>
                             {%else%}
                                 <div class="mb-4">
-                                    <p><b>No existen resultados en la Darknet para este nombre.</b></p>
+                                    <p style="text-align:justify"><b>No existen resultados en la Darknet para este nombre.</b></p>
                                 </div>
                             {%endif%}
                         </div>
@@ -148,7 +148,7 @@
         <div class="text-justify mb-4">
             <h3>Resultados para nickname: <b>{{nickname}}</b></h3>
             <div class="col-lg-12">
-                <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas y clasificarlas una vez sepas la paleta de colores</p>
+                <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas y clasificarlas una vez sepas la paleta de colores</p>
             </div>
             <div class="row row-cols-1 row-cols-md-4 mb-4 g-4">
                 {%for card in resultadoNickname%}
@@ -239,10 +239,10 @@
                         </button>
                     </div>
                     <div class="contenido-Darknet" id="contenido-Darknet-2">
-                        <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
-                        <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                        <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                        <p style="text-align:justify">Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
                         {%if resultadoDarknetNickname|length != 0 %}
-                            <p>Se encontró un total de <b>{{resultadoDarknetNickname|length}} resultados</b>.</p>
+                            <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetNickname|length}} resultados</b>.</p>
                             <div class="row row-cols-1 row-cols-md-4 g-4">
                                 {%for card in resultadoDarknetNickname%}
                                     <div class= "col">
@@ -267,7 +267,7 @@
                             </div>
                         {%else%}
                             <div class="mb-4">
-                                <p><b>No existen resultados en la Darknet para este nickname.</b></p>
+                                <p style="text-align:justify"><b>No existen resultados en la Darknet para este nickname.</b></p>
                             </div>
                         {%endif%}
                     </div>
@@ -281,11 +281,11 @@
         <div class="text-justify mb-4 ">
             <h3>Resultados para email y teléfono: <b>{{email}}, {{phone}}</b>.</h3>
             <div class="col-lg-12">
-                <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
+                <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
             </div>
             <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por IntelX</h4>
-                <p>En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
+                <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
                 <div class = "mt-3">
                     <h6>Para el <b>email</b>:</h6>
                     {%if resultadosIntelxEmail|length !=0 %}
@@ -360,7 +360,7 @@
                     </div>
                     {%else%}
                     <div class="mb-4">
-                        <p>No existen datos comprometidos para este correo</p>
+                        <p style="text-align:justify">No existen datos comprometidos para este correo</p>
                     </div>
                     {%endif%}
                 </div>
@@ -438,16 +438,16 @@
                     </div>
                     {%else%}
                     <div class="mb-4">
-                        <p>No existen datos comprometidos para este teléfono</p>
+                        <p style="text-align:justify">No existen datos comprometidos para este teléfono</p>
                     </div>
                     {%endif%}
                 </div>
             </div>
             <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
-                <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
-                <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
-                <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
+                <p style="text-align:justify">En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
+                <p style="text-align:justify">Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                <p style="text-align:justify">Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
 
                 {#BREACHES#}
                 <div class = "mt-3">
@@ -481,7 +481,7 @@
                     {%else%}
                         <div>
                             <h6>Para el <b>email</b>:</h6>
-                            <p>No existen brechas para este email.</p>
+                            <p style="text-align:justify">No existen brechas para este email.</p>
                         </div>
                     {%endif%}
 
@@ -515,7 +515,7 @@
                     {%else%}
                         <div class=" mt-3">
                             <h6>Para el <b>teléfono</b>:</h6>
-                            <p>No existen brechas para este teléfono.</p>
+                            <p style="text-align:justify">No existen brechas para este teléfono.</p>
                         </div>
                     {%endif%}
                 </div>
@@ -524,7 +524,7 @@
                 <div class="mt-3">
                     <h5>Pastes</h5>
                     {%if resultadosPwnedEmail[1]|length != 0 %}
-                        <p>Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
+                        <p style="text-align:justify">Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
                         <div class = "mt-3">    
                             <h6>Para el <b>email</b>:</h6>
                             <div class="row row-cols-1 row-cols-md-4 g-4">
@@ -554,7 +554,7 @@
                     {%else%}
                         <div>
                             <h6>Para el <b>email</b>:</h6>
-                            <p>No existen <i>pastes</i> para este email.</p>
+                            <p style="text-align:justify">No existen <i>pastes</i> para este email.</p>
                         </div>
                     {%endif%}
                 </div>
@@ -562,11 +562,11 @@
             {%if darknet%}
                 <div class="col-lg-12 mb-4">
                     <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
-                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
                     <div class = "mt-3">
                         <h6>Para el <b>email</b>:</h6>
                         {%if resultadoDarknetEmail|length != 0 %}
-                            <p>Se encontró un total de <b>{{resultadoDarknetEmail|length}} resultados</b>.</p>
+                            <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetEmail|length}} resultados</b>.</p>
                             <div class="row row-cols-1 row-cols-md-4 g-4">
                                 {%for card in resultadoDarknetEmail%}
                                     <div class= "col">
@@ -591,14 +591,14 @@
                             </div>
                         {%else%}
                             <div class="mb-4">
-                                <p><b>No existen resultados en la Darknet para este email.</b></p>
+                                <p style="text-align:justify"><b>No existen resultados en la Darknet para este email.</b></p>
                             </div>
                         {%endif%}
                     </div>
                     <div class = "mt-3">
                         <h6>Para el <b>teléfono</b>:</h6>
                         {%if resultadoDarknetPhone|length != 0 %}
-                            <p>Se encontró un total de <b>{{resultadoDarknetPhone|length}} resultados</b>.</p>
+                            <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetPhone|length}} resultados</b>.</p>
                             <div class="row row-cols-1 row-cols-md-4 g-4">
                                 {%for card in resultadoDarknetPhone%}
                                     <div class= "col">
@@ -623,7 +623,7 @@
                             </div>
                         {%else%}
                             <div class="mb-4">
-                                <p><b>No existen resultados en la Darknet para este teléfono.</b></p>
+                                <p style="text-align:justify"><b>No existen resultados en la Darknet para este teléfono.</b></p>
                             </div>
                         {%endif%}
                     </div>
@@ -637,11 +637,11 @@
         <div class="text-justify mb-4 ">
             <h3>Resultados para email: <b>{{email}}</b></h3>
             <div class="col-lg-12">
-                <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
+                <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
             </div>
             <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por IntelX</h4>
-                <p>En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
+                <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
                 {%if resultadosIntelxEmail|length !=0 %}
                 <div class="row row-cols-1 row-cols-md-4 g-4">
                     {%for card in resultadosIntelxEmail%}
@@ -713,16 +713,16 @@
                     {%endfor%}
                 {%else%}
                     <div class="mb-4">
-                        <p>No existen datos comprometidos para este correo</p>
+                        <p style="text-align:justify">No existen datos comprometidos para este correo</p>
                     </div>
                 {%endif%}
                 </div>
             </div>
             <div class="col-lg-12 mb-4">
                     <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
-                    <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
-                    <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
-                    <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
+                    <p style="text-align:justify">En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
+                    <p style="text-align:justify">Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                    <p style="text-align:justify">Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
                     {%if resultadosPwnedEmail[0]|length != 0 %}
                         <h5>Breaches</h5>
                         <div class="row row-cols-1 row-cols-md-4 g-4">
@@ -750,13 +750,13 @@
                         </div>
                     {%else%}
                         <div class="mb-4">
-                            <p>No existen brechas para este correo.</p>
+                            <p style="text-align:justify">No existen brechas para este correo.</p>
                         </div>
                     {%endif%}
 
                     {%if resultadosPwnedEmail[1]|length != 0 %}
                         <h5>Pastes</h5>
-                        <p>Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
+                        <p style="text-align:justify">Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
                         <div class="row row-cols-1 row-cols-md-4 g-4">
                             {%for card in resultadosPwnedEmail[1]%}
                                 <div class= "col">
@@ -782,17 +782,17 @@
                         </div>
                     {%else%}
                         <div class="mb-4">
-                            <p>No existen <i>pastes</i> para este correo.</p>
+                            <p style="text-align:justify">No existen <i>pastes</i> para este correo.</p>
                         </div>
                     {%endif%}
             </div>
             {%if darknet%}
                 <div class="col-lg-12 mb-4">
                     <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
-                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
-                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p style="text-align:justify">Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
                     {%if resultadoDarknetEmail|length != 0 %}
-                        <p>Se encontró un total de <b>{{resultadoDarknetEmail|length}} resultados</b>.</p>
+                        <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetEmail|length}} resultados</b>.</p>
                         <div class="row row-cols-1 row-cols-md-4 g-4">
                             {%for card in resultadoDarknetEmail%}
                                 <div class= "col">
@@ -817,7 +817,7 @@
                         </div>
                     {%else%}
                         <div class="mb-4">
-                            <p><b>No existen resultados en la Darknet para este email.</b></p>
+                            <p style="text-align:justify"><b>No existen resultados en la Darknet para este email.</b></p>
                         </div>
                     {%endif%}
                 </div>
@@ -829,11 +829,11 @@
         <div class="text-justify mb-4 ">
             <h3>Resultados para el teléfono: <b>{{phone}}</b></h3>
             <div class="col-lg-12">
-                <p>Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
+                <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
             </div>
             <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por IntelX</h4>
-                <p>En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más información sobre esta página clicka en el link.</p>
+                <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más información sobre esta página clicka en el link.</p>
                 {%if resultadosIntelxPhone|length !=0 %}
                 <div class="row row-cols-1 row-cols-md-4 g-4">
                     {%for card in resultadosIntelxPhone%}
@@ -905,16 +905,16 @@
                     {%endfor%}
                 {%else%}
                     <div class="mb-4">
-                        <p>No existen datos comprometidos para este teléfono</p>
+                        <p style="text-align:justify">No existen datos comprometidos para este teléfono</p>
                     </div>
                 {%endif%}
                 </div>
             </div>
             <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
-                <p>En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
-                <p>Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
-                <p>Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
+                <p style="text-align:justify">En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
+                <p style="text-align:justify">Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                <p style="text-align:justify">Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
                 {%if resultadosPwnedPhone|length != 0 %}
                     <h5>Breaches</h5>
                     <div class="row row-cols-1 row-cols-md-4 g-4">
@@ -942,17 +942,17 @@
                     </div>
                 {%else%}
                     <div class="mb-4">
-                        <p>No existen brechas para este correo.</p>
+                        <p style="text-align:justify">No existen brechas para este correo.</p>
                     </div>
                 {%endif%}
             </div>
             {%if darknet%}
                 <div class="col-lg-12 mb-4">
                     <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
-                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
-                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p style="text-align:justify">Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
                     {%if resultadoDarknetPhone|length != 0 %}
-                        <p>Se encontró un total de <b>{{resultadoDarknetPhone|length}} resultados</b>.</p>
+                        <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetPhone|length}} resultados</b>.</p>
                         <div class="row row-cols-1 row-cols-md-4 g-4">
                             {%for card in resultadoDarknetPhone%}
                                 <div class= "col">
@@ -977,11 +977,13 @@
                         </div>
                     {%else%}
                         <div class="mb-4">
-                            <p><b>No existen resultados en la Darknet para este teléfono.</b></p>
+                            <p style="text-align:justify"><b>No existen resultados en la Darknet para este teléfono.</b></p>
                         </div>
                     {%endif%}
                 </div>
             {%endif%}
         </div>
     {% endif %}
+    
+</div>
 {%endblock%}

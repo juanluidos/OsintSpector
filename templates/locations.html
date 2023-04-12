@@ -26,7 +26,7 @@
 </body>
 </html>
 <script>
-    lista = {{data |tojson}}
+    lista = {{localizaciones |tojson}}
     console.log(lista)
 
     var tableColumns = [
@@ -58,6 +58,7 @@
         data: tableData,
         layout: "fitDataTable",
         columns: tableColumns,
+        placeholder:"No hay localizaciones disponibles en los tweets del usuario",
         groupBy: function(data){
             //data - the data object for the row being grouped
             return data.location; //groups by location

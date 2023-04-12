@@ -403,7 +403,7 @@ class Localizaciones:
             })
         return data
 
-# Ejemplo de uso
-localizaciones = Localizaciones(tweets_df1)
-data = localizaciones.esquema_localizaciones()
-print(data)
+# # Ejemplo de uso
+# localizaciones = Localizaciones(tweets_df1)
+# data = localizaciones.esquema_localizaciones()
+# print(data)
