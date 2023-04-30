@@ -625,7 +625,10 @@ progress {
   font-size: 0.875em;
   color: #6c757d;
 }
-
+.containerBusqueda{
+  margin-right: 10%;
+  margin-left: 10%;
+}
 .container,
 .container-fluid,
 .container-xxl,
@@ -7813,6 +7816,10 @@ textarea.form-control-lg {
 
 .bg-music-success {
   background-color: #84A59D!important;
+}
+
+.bg-hobby-success {
+  background-color: #F7934C!important;
 }
 
 .bg-else-categoria-success {

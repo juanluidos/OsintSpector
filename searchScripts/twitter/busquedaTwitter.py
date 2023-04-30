@@ -1,4 +1,3 @@
-import os
 import tempfile
 import unicodedata
 from unidecode import unidecode
@@ -26,9 +25,9 @@ class busquedaTwitter:
         self.n_tweets = n_tweets
 
     def resultadoBusqueda(self):
-        scrape = self.Scraping(self.username, self.n_tweets)
-        dataframe = scrape.scrape()
-
+        # scrape = self.Scraping(self.username, self.n_tweets)
+        # dataframe = scrape.scrape()
+        dataframe = pd.read_csv("pruebaTweetsScrapingPedro.csv")
         word = self.WordCloudGenerator()
         wordcloud = word.generar_wordcloud(dataframe['Text'])
 
@@ -127,7 +126,7 @@ class busquedaTwitter:
                 texto_limpio += self.limpiar_texto(texto) + " "
 
             # Crear la instancia de la clase WordCloud
-            wordcloud = WordCloud(background_color="white", mask=mask_twitter, max_words=200, stopwords=self.stopwords, contour_width=0, contour_color='steelblue', scale=1.5, collocations=False)
+            wordcloud = WordCloud(background_color="white", mask=mask_twitter, max_words=200, stopwords=self.stopwords, contour_width=0, contour_color='steelblue', scale=2, collocations=False)
 
             wordcloud.generate(texto_limpio)
 

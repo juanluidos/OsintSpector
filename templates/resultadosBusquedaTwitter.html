@@ -100,7 +100,7 @@
                 quasi aliquam eligendi, placeat qui corporis!</p>
         </div>
         <div class="row">
-            <div class="col-md-7">
+            <div class="col-md-8">
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
                         <thead>
@@ -127,7 +127,7 @@
                     </table>
                 </div>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <canvas id="chart"></canvas>
             </div>
         </div>
@@ -282,21 +282,31 @@
             // Agregar los primeros 10 nodos en un círculo alrededor del nodo central
             var angulo = 2 * Math.PI / 10;
             for (var i = 1; i <= 10; i++) {
-              var x = Math.cos(i * angulo) * 150;
-              var y = Math.sin(i * angulo) * 150;
-              var nodo = {id: lista_tuplas[i-1][0], label: lista_tuplas[i-1][0], x: x, y: y,interacciones: "Hola"
-            };
-              nodos.add(nodo);
+                if(lista_tuplas.length >= i){
+                    var x = Math.cos(i * angulo) * 150;
+                    var y = Math.sin(i * angulo) * 150;
+                    var nodo = {id: lista_tuplas[i-1][0], label: lista_tuplas[i-1][0], x: x, y: y,interacciones: "Hola"
+                    };
+                    nodos.add(nodo);
+                }
+                else{
+                    break
+                }
             }
     
             // Agregar los siguientes 20 nodos en un círculo exterior alrededor del círculo interior
             var angulo2 = 1 * Math.PI / 10;
             for (var i = 11; i <= 30; i++) {
-              var x = Math.cos(i * angulo2) * 300;
-              var y = Math.sin(i * angulo2) * 300;
-              var nodo = {id: lista_tuplas[i-1][0], label: lista_tuplas[i-1][0], x: x, y: y, interacciones: "Hola"// 
-            };
-              nodos.add(nodo);
+                if(lista_tuplas.length >= i){
+                    var x = Math.cos(i * angulo2) * 300;
+                    var y = Math.sin(i * angulo2) * 300;
+                    var nodo = {id: lista_tuplas[i-1][0], label: lista_tuplas[i-1][0], x: x, y: y, interacciones: "Hola"// 
+                    };
+                    nodos.add(nodo);
+                }
+                else{
+                    break
+                }
             }
     
             // Agregar las aristas desde la lista de tuplas
@@ -329,11 +339,14 @@
               popup.style.textAlign = "center"
     
               // Agregar el manejador de eventos de clic
-              grafo.on('click', function(params) {
+              grafo.addEventListener('click', function(params) {
                 if ((params.nodes.length > 0 && (params.nodes[0] != user))) {
                   // Obtener las coordenadas del evento de clic
-                  var x = params.pointer.DOM.x;
-                  var y = params.pointer.DOM.y;
+                  console.log(params.pointer)
+                  console.log(params)
+                  console.log(params.event.srcEvent.pageY)
+                  var x = params.event.srcEvent.pageX;
+                  var y = params.event.srcEvent.pageY;
                   var nombreUsuario = params.nodes
                   var linkUsuario = "https://twitter.com/" + nombreUsuario
     
@@ -346,6 +359,7 @@
                   var enlace = document.createElement('a');
                   enlace.setAttribute('href', linkUsuario);
                   enlace.textContent = 'Perfil de Twitter';
+                  enlace.style.fontWeight = "bold"
                   enlace.setAttribute("target", "_blank")
                   popup.innerHTML = nombreUsuario + '<br>' + 'Nº Interacciones:'+ aristasDataSet.get(params.edges[0]).value +'<br>'; // nº interacciones que ha tenido el usuario con este nodo
                   popup.appendChild(enlace);
@@ -355,7 +369,6 @@
                   popup.style.display = 'none';
                 }
               });
-    
     
               // Agregar el elemento del popup al contenedor de la red
               document.getElementById('grafo').appendChild(popup);
@@ -392,19 +405,14 @@
                 totam ratione voluptas quod exercitationem fuga. Possimus quis earum veniam 
                 quasi aliquam eligendi, placeat qui corporis!</p>
         </div>
-        <div class="row">
-            <div class="col-sm-12">
-              <div class="table-responsive">
-                    <div class="table table-striped table-hover mx-auto w-auto" id="tablaLocalizaciones">
-                    </div>
-                </div>
-            </div>
+        <div class="table table-striped table-hover mx-auto w-auto" id="tablaLocalizaciones">
         </div>
+    </div>
         <script>
             lista = {{localizaciones |tojson}}
         
             var tableColumns = [
-                {title: "Fecha publicación", field: "datetime",columnHeaderVertAlign:"top", hozAlign:"center", formatter: "plaintext", headerFilter: "input", headerFilterPlaceholder:"Filtro fechas",
+                {title: "Fecha publicación", field: "datetime", hozAlign:"center", formatter: "plaintext", headerFilter: "input", headerFilterPlaceholder:"Filtro fechas",
                 sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
                     // Convertir la cadena de fecha en un objeto de fecha
                     var dateA = new Date(a);
@@ -417,7 +425,7 @@
                     // Devolver el resultado de la comparación
                     return numA - numB;
                 }},
-                {title: "URL Tweet", field: "url", vertAlign: "top", formatter: "link", headerSort:false, width:"*", formatterParams: {labelField: "url", target: "_blank"}}
+                {title: "URL Tweet", field: "url", vertAlign: "top", formatter: "link", headerSort:false, formatterParams: {labelField: "url", target: "_blank"}}
             ];
             
             var tableData = [];
@@ -434,11 +442,8 @@
                 }
             }
             var table = new Tabulator("#tablaLocalizaciones", {
-                responsiveLayout:true,
-                responsiveLayoutCollapseStartOpen:true,
-                width: "100%",
                 data: tableData,
-                layout: "fitDataFill",
+                layout: "fitDataStretch",
                 columns: tableColumns,
                 placeholder:"No hay localizaciones disponibles en los tweets del usuario",
                 groupBy: function(data){
@@ -454,8 +459,6 @@
                     return value  + " - " + "<a href='" + data[0].maps +"'target='_blank'>Link localización</a>" +"<span style='color:#d00; margin-left:10px;'>(" + count + " item)</span>";
                 }
             });
-            // ajustar tabla al tamaño del contenedor
-            $("#tablaLocalizaciones table").css("table-layout", "fixed");
         </script>
     </div>
 

@@ -1,12 +1,24 @@
 import os
 import random
+import tempfile
 import time
+from matplotlib.pyplot import show
 import requests
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 from googleapiclient.discovery import build
+import unicodedata
+from unidecode import unidecode
+from wordcloud import WordCloud, STOPWORDS
+import re
+import nltk
+nltk.download('stopwords')
+nltk.download('punkt')
+from nltk.corpus import stopwords
+from dotenv import load_dotenv
+from PIL import Image
+
 load_dotenv()
 #from utils.commonFunctions import randomUserAgent
 
@@ -173,8 +185,6 @@ class GoogleScrapingPerson():
             'Accept-Encoding': 'gzip, deflate',
                 'User-Agent': self.user_agent
             }
-        # print(self.params)
-        # print(json.dumps(api_result.json()))
     def getDataNameSurname(self, name="",surname="", city=""):
         if(name != "" and surname != ""):
             self.params["q"] = f'"{name} {surname}"'
@@ -228,30 +238,112 @@ class GoogleScrapingPerson():
         print("Searching for " + name +" "+ surname +" "+ city)
         searchResultsNameSurname = []
         searchResultsSurnameName = []
+        textoBrutoWordcloud = ""
+        dominiosBruto = []
         rawDataNameSurname = self.getDataNameSurname(name,surname,city)
         rawDataSurnameName = self.getDataSurnameName(name,surname,city)
-
+        
         for element in rawDataNameSurname:
+            #A veces el parametro snippet da error porq no existe en el diccionario de respuesta
+            try:
                 searchResultsNameSurname.append([element["domain"], element["link"] ,element["title"], element["snippet"]])
+                textoBrutoWordcloud += element["title"] + " " + element["snippet"]
+                dominiosBruto.append(element["domain"])
+            except:
+                searchResultsNameSurname.append([element["domain"], element["link"] ,element["title"], ""])
+                textoBrutoWordcloud += element["title"]
+                dominiosBruto.append(element["domain"])
         for element in rawDataSurnameName:
-                searchResultsSurnameName.append([element["domain"], element["link"] ,element["title"], element["snippet"]])
+            try:
+                searchResultsNameSurname.append([element["domain"], element["link"] ,element["title"], element["snippet"]])
+                textoBrutoWordcloud += element["title"] + " " + element["snippet"]
+                dominiosBruto.append(element["domain"])
+            except:
+                searchResultsNameSurname.append([element["domain"], element["link"] ,element["title"], ""])
+                textoBrutoWordcloud += element["title"]
+                dominiosBruto.append(element["domain"])
+        print(dominiosBruto)
         #merge 2 list removing duplicates values
         searchResultsNameSurname.extend(x for x in searchResultsSurnameName if x not in searchResultsNameSurname)
         print("Found {data1} and google search results".format(data1 = len(searchResultsNameSurname)))
-        return searchResultsNameSurname
 
+        #PARTE PARA LA GRÁFICA Y WORDCLOUD
+        if(textoBrutoWordcloud != "" and dominiosBruto != []):
+                    
+            #Gráfica
+            print("Generando Datos Gráfica Persona...")
+            diccionarioGrafica = {}
 
+            for dominio in dominiosBruto:
+                extension = "." + dominio.split('.')[-1]
+                if extension in diccionarioGrafica:
+                    diccionarioGrafica[extension] += 1
+                else:
+                    diccionarioGrafica[extension] = 1
+            datosGrafica = [list(diccionarioGrafica.keys()),list(diccionarioGrafica.values())]
+            print(datosGrafica)
+            print("Datos para la gráfica generados")
 
-# params = {
-# 'api_key': os.getenv('API_SERP'),
-#   'q': '"Eric Andrés Obaya"',
-#   'nfpr': 1,
-#   'filter': 0,
-#    'location': 'Asturias,Spain'
-# }
+            #Wordcloud
+            print("Generando Wordcloud Persona...")
+            # Eliminar menciones
+            textoBrutoWordcloud = re.sub(r'@([A-Za-z0-9_]+)', r'\1', textoBrutoWordcloud)
 
-# # make the http GET request to Scale SERP
-# api_result = requests.get('https://api.scaleserp.com/search', params)
+            # Eliminar urls
+            textoBrutoWordcloud = re.sub(r'https?://[A-Za-z0-9./]+', '', textoBrutoWordcloud)
 
-# # print the JSON response from Scale SERP
-# print(json.dumps(api_result.json()))
+            # Eliminar hashtags (solo el simbolo #)
+            textoBrutoWordcloud = re.sub(r'#([^\s]+)', r'\1', textoBrutoWordcloud)
+
+            # Eliminar signos de puntuación y números
+            textoBrutoWordcloud = re.sub('[^a-zA-ZáéíóúüÁÉÍÓÚÜñÑ]', ' ', textoBrutoWordcloud)
+
+            # Eliminar espacios extra y saltos de línea
+            textoBrutoWordcloud = re.sub(' +', ' ', textoBrutoWordcloud).strip()
+
+            # Eliminar stopwords en español y en inglés
+            spanish_stopwords = set(stopwords.words('spanish'))
+            english_stopwords = set(stopwords.words('english'))
+            all_stopwords = spanish_stopwords.union(english_stopwords)
+            
+            # Agregar versiones normalizadas de stopwords originales
+            for stopword in spanish_stopwords:
+                all_stopwords.add(unidecode(stopword))
+            for stopword in english_stopwords:
+                all_stopwords.add(unidecode(stopword))
+            
+            # Eliminar stopwords y palabras de una sola letra
+            texto_limpio = [word.lower() for word in nltk.word_tokenize(textoBrutoWordcloud) if word.lower() not in all_stopwords and len(word) > 1]
+
+            #Convertir a minúsculas y normalizar letras con acentos y diéresis
+            texto_limpio = " ".join(texto_limpio)
+            texto_limpio = unicodedata.normalize('NFKD', texto_limpio.lower()).encode('ASCII', 'ignore').decode('utf-8')
+
+            # Eliminar los propios nombres y apellidos, lo del split es por si fuera nombre compuesto
+            palabras_a_eliminar = name.split(sep=' ')
+            palabras_a_eliminar.extend(surname.split(sep=' '))
+
+                # Eliminar las palabras de la cadena de texto
+            for palabra in palabras_a_eliminar:
+                texto_limpio = re.sub(palabra.lower(), '', texto_limpio)
+
+            #Generar wordcloud
+            # Crear la instancia de la clase WordCloud
+            wordcloud = WordCloud(background_color="white", max_words=200, stopwords=set(STOPWORDS), contour_color='steelblue', scale=2, height=400, collocations=False)
+
+            wordcloud.generate(texto_limpio)
+            # Crear un archivo temporal para guardar la imagen
+            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+                output_path = tmp.name
+
+                # Guardar la imagen en el archivo temporal
+                wordcloud.to_file(output_path)
+
+                # Devolver la ruta de la imagen
+                print("Wordcloud Generado")
+                return (searchResultsNameSurname, output_path, datosGrafica)
+        
+        return searchResultsNameSurname, "",[]
+    
+# hp = GoogleScrapingPerson()
+# resultadosGoogleSearch = hp.parseData(name="ángel jesús",surname="varela vaca",city= "sevilla")

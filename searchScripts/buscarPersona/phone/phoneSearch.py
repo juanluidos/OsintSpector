@@ -1,4 +1,4 @@
-from utils.Intelx.intelexapi import intelx as intel
+from searchScripts.buscarPersona.emailPhone.intelexapi import intelx as intel
 
 def phonebooksearch(target):
     intelx = intel("8134168d-053b-4042-adbe-19ab981d82aa")

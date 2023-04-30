@@ -1,7 +1,13 @@
 #USANDO LA KEY DE IHBP
+import asyncio
 import time
 import requests
-from utils.commonFunctions import randomUserAgent
+import random
+def randomUserAgent(filename):
+    with open(filename) as f:
+        lines = f.readlines()
+
+    return random.choice(lines).replace("\n","")
 
 class HIBPApi:
     def __init__(self, api_key):
@@ -35,6 +41,9 @@ class HIBPApi:
                         found_site.append(value)
                     if key == "DataClasses":
                         found_site.append(value)
+                    if key == "BreachDate":
+                        value = value.split("-")[0]
+                        found_site.append(value)
                 all_found_sites.append(found_site)
 
             print(
@@ -65,7 +74,10 @@ class HIBPApi:
                     if key == "Id":
                         found_site.append(value)
                     if key == "Date":
-                        found_site.append(value)
+                        if value is not None:
+                            found_site.append(value[:4])
+                        else:
+                            found_site.append(value)
                     if key == "EmailCount":
                         found_site.append(value)
                 all_found_sites.append(found_site)
@@ -90,3 +102,7 @@ class HIBPApi:
             pasted = self.getPasted(target)
             return breached, pasted
         return breached
+
+# hp = HIBPApi("")
+# resultadosPwnedEmail =asyncio.run(hp.getPwnedData("juanluaguilerarive@gmail.com"))
+# print(resultadosPwnedEmail[0])

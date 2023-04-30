@@ -60,7 +60,7 @@ load_dotenv()
 
 # # Using TwitterSearchScraper to scrape data and append tweets to list
 # for i,tweet in enumerate(sntwitter.TwitterSearchScraper('from:JotaroKullons').get_items()):
-#     if i>=7000:
+#     if i>=2000:
 #         break
 #     tweets_list1.append([tweet.date, tweet.id, tweet.rawContent, tweet.url, tweet.place])
     
@@ -153,6 +153,7 @@ class WordCloudGenerator:
 # Crear una instancia de WordCloudGenerator
 wc_generator = WordCloudGenerator()
 tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv", sep=",")
+tweets_Pedro = pd.read_csv("pruebaTweetsScrapingPedro.csv", sep=",")
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -209,7 +210,7 @@ class CommunityGraph:
 
     def show_graph_Spring(self):
         pos = nx.spring_layout(self.G, seed=42)
-        plt.figure(figsize=(12, 8))
+        plt.figure(figsize=(20, 20))
         node_color = [0] * len(self.G.nodes())
         for i, community in enumerate(self.communities):
             for node in community:
@@ -294,7 +295,7 @@ class GrafoComunidad:
         plt.show()
 
 # Crear una instancia de la clase CommunityGraph con el dataframe
-# my_graph = CommunityGraph(tweets_df1["Text"])
+# my_graph = CommunityGraph(tweets_Pedro["Text"])
 # my_graph.obtener_interacciones()
 
 # my_graph.show_graph_Spring()

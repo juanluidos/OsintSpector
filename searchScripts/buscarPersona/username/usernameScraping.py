@@ -120,5 +120,15 @@ def usernameScrapping(username, inputfile):
 
     for thread in threads:
         thread.join()
+
+    #Datos para la gráfica
+    diccionarioNickname = {}
+    for item in all_found_sites:
+        categoria = item[1]
+        if categoria in diccionarioNickname:
+            diccionarioNickname[categoria] += 1
+        else:
+            diccionarioNickname[categoria] = 1
+    datosGrafica = [list(diccionarioNickname.keys()),list(diccionarioNickname.values())]
     #Retornamos finalmente la lista de todos los sitios registrados en el JSON donde encontramos el username
-    return all_found_sites
+    return all_found_sites, datosGrafica

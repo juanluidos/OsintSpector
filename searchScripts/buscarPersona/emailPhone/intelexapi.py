@@ -7,7 +7,12 @@ import sys
 import re
 import os
 
-from utils.commonFunctions import randomUserAgent
+import random
+def randomUserAgent(filename):
+    with open(filename) as f:
+        lines = f.readlines()
+
+    return random.choice(lines).replace("\n","")
 
 class intelx:
 
@@ -140,6 +145,10 @@ class intelx:
 	def emailOrPhoneSearch(self, target):
 		search = self.search(target)
 		results = []
+		#para el dashboard
+		diccionarioTipo = {}
+		diccionarioTamanyo = {}
+		diccionarioFechas = {}
 		for record in search:
 			resultsElemento = {}
 			print(f"Found media type {record['media']} in {record['bucket']} with an id {record['storageid']}")
@@ -149,4 +158,24 @@ class intelx:
 			resultsElemento["bytes"] = record['size']
 			resultsElemento["media"] = record['mediah']
 			results.append(resultsElemento)
-		return results
+
+			#Crear diccionario primer grafica en dashboard (bar horizontal)
+			categoriaTipo = record['mediah']
+			if categoriaTipo in diccionarioTipo:
+				diccionarioTipo[categoriaTipo] += 1
+			else:
+				diccionarioTipo[categoriaTipo] = 1
+
+			#Crear diccionario primer grafica en dashboard (donut)
+			categoriaTamanyo = record['name']
+			if categoriaTamanyo not in diccionarioTamanyo:
+				diccionarioTamanyo[categoriaTamanyo] = record['size']
+
+			#Crear diccionario primer grafica en dashboard (bar vertical)
+			categoriaTamanyo = record['date'].split("-")[0]
+			if categoriaTamanyo in diccionarioFechas:
+				diccionarioFechas[categoriaTamanyo] += 1
+			else:
+				diccionarioFechas[categoriaTamanyo] = 1
+
+		return results, diccionarioTipo, diccionarioTamanyo, diccionarioFechas

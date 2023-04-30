@@ -1,10 +1,17 @@
 {%extends "baseResultados.html" %}
 
 {%block newHeadContent%}
+<!--Chart.js para graficos-->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!--Jquery-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.slim.min.js"></script>
+<!--Apexcharts y JS dashboards-->
+<script type="text/javascript" src="{{ url_for('static', filename='js/apexcharts.min.js') }}"></script>
+
 {%endblock%}
 
 {%block headingRow%}
-<div class="row gx-4 gx-lg-5 align-items-center my-5">
+<div class="row gx-4 gx-lg-5 align-items-center my-3">
     <div class="col-lg-12 text-center">
         <h1 class="font-weight-light">Resultados de la Búsqueda</h1>
     </div>
@@ -35,19 +42,19 @@
       });
       
 </script>
-<div class="container px-1">
+<div class="containerBusqueda px-1">
     {#NOMBRE Y APELLIDOS#}
     {% if nombre or apellidos%}
         {#INE#}
-        <div class="text-justify mb-4">
-            <h3>Resultados de búsqueda para la persona: <b>{{nombre}} {{apellidos}}</b>.</h3>
+        <div class="text-justify mt-4 mb-4">
+            <h3 style="text-align: center">Resultados de búsqueda para la persona: <b>{{nombre}} {{apellidos}}</b>.</h3>
             <div id="ine">
                 {% if nombre%}
                     <div id="nombreIne" class="mb-2">
                         {%if resultadosINEName is string%}
-                        <p style="text-align:justify"> El total de personas en toda España con el mismo nombre es menor de 20</p>
+                        <p style="text-align:justify"> El total de personas en toda España con el mismo nombre es menor de 20.</p>
                         {%else%}
-                        <p style="text-align:justify"> El total de personas en toda España con el mismo nombre es de {{resultadosINEName[0]}} con una media de edad de {{resultadosINEName[1]}} años</p>
+                        <p style="text-align:justify"> El total de personas en toda España con el mismo nombre es de {{resultadosINEName[0]}} con una media de edad de {{resultadosINEName[1]}} años.</p>
                         {%endif%}
                     </div>
                 {%endif %}
@@ -55,7 +62,7 @@
                 {% if apellidos%}
                     <div id="apellidosIne" class="mb-2">
                         {%for apellido in resultadosINESurname%}
-                            <p style="text-align:justify"> El total de personas en toda España con el apellido {{apellido[0]}} como {{apellido[2]}} apellido es de: {{apellido[1]}} </p>
+                            <p style="text-align:justify"> El total de personas en toda España con el apellido {{apellido[0]}} como {{apellido[2]}} apellido es de: {{apellido[1]}}. </p>
                         {%endfor%}
                     </div>
                 {%endif %}
@@ -64,31 +71,110 @@
 
         {#Google Search Custom#}
         <div id="googleSearch">
-            <h5>La información encontrada en internet sobre {{nombre}} {{apellidos}} es la siguiente: </h5>
-            {%if resultadosGoogleSearch|length !=0 %}
-            <div class="row row-cols-1 row-cols-md-4 g-4">
-                {%for card in resultadosGoogleSearch%}
-                <div class= "col">
-                    <div class ="card border-info mb-3" style="width: 12 rem">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a class="card-link" target="_blank" href={{card[1]}}>
-                                    <div class="card-header text-align:center">
-                                        {{card[0]}} 
-                                    </div>
-                                </a>
-                            </h5>
-                            <h6 class="card-text"><b>Título: </b> {{card[2]}}.</h6>
-                            {%if card[3] == "Unknown" %}
-                                <h6 class="card-text"><b>Descripción de la página:</b> No existe descripción sobre esta página.</h6>
-                            {%else%}
-                                <h6 class="card-text"><b>Descripción de la página:</b> {{card[3]| safe}}.</h6>
-                            {%endif%}
-                        </div>
-                    </div>
-                </div>
-                {%endfor%}
+            <div class="text-justify">
+                <h5>La información encontrada en internet sobre {{nombre}} {{apellidos}} es la siguiente: </h5>
             </div>
+            {%if resultadosGoogleSearch|length !=0 %}
+            <p style="text-align:justify">Wordcloud con las palabras más frecuentes encontradas en la búsqueda y otro grafico que nosecuantos loremipsum PLACEHOLDER</p>
+                <div style="margin-bottom:16px" class="row">
+                    <div class="col-md-6">
+                        <img class="img-fluid mx-auto d-block" src="data:image/png;base64,{{ imgWordcloud }}" alt="Wordcloud generada en la búsqueda">
+                    </div>
+                    <div class="col-md-6">
+                        <canvas id="googleChart"></canvas>
+                    </div>
+                    <script>
+                        var clavesGoogle = {{graficaGoogleSearch[0] | tojson}};
+                        var valoresGoogle = {{graficaGoogleSearch[1]}};
+                        var doughnutChart = new Chart(document.getElementById('googleChart'), {
+                          type: 'doughnut',
+                          data: {
+                            labels: clavesGoogle,
+                            datasets: [{
+                              data: valoresGoogle,
+                            }]
+                          },
+                          options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                          }
+                        });
+                        //Hacemos responsive el grafico
+                        var canvas = document.getElementById('googleChart');
+                        var heightRatio = 1.5;
+                        canvas.height = canvas.width * heightRatio;
+                      </script>
+                </div>
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    {%for card in resultadosGoogleSearch[0:4]%}
+                        <div class= "col card-item">
+                            <div class ="card border-info mb-3" style="width: 12 rem">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a class="card-link" target="_blank" href={{card[1]}}>
+                                            <div class="card-header text-align:center">
+                                                {{card[0]}} 
+                                            </div>
+                                        </a>
+                                    </h5>
+                                    <h6 class="card-text"><b>Título: </b> {{card[2]}}.</h6>
+                                    {%if card[3] == "Unknown" %}
+                                        <h6 class="card-text"><b>Descripción de la página:</b> No existe descripción sobre esta página.</h6>
+                                    {%else%}
+                                        <h6 class="card-text"><b>Descripción de la página:</b> {{card[3]| safe}}.</h6>
+                                    {%endif%}
+                                </div>
+                            </div>
+                        </div>
+                    {%endfor%}
+                </div>
+                {%if resultadosGoogleSearch|length > 5%}
+                <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                    <button class="btn btn-primary" type="button" onclick="toggleGoogleResults()">Mostrar/ocultar el resto de resultados de la persona</button>
+                </div>
+                <div id="resultadoBusquedaGoogle">
+                    <script>
+                        var resultadosGoogleVisible = false;
+                    
+                        function toggleGoogleResults() {
+                            if (resultadosGoogleVisible) {
+                                // Ocultar resultados
+                                document.getElementById("resultadosGoogleHide").style.display = "none";
+                                resultadosGoogleVisible = false;
+                            } else {
+                                // Generar HTML para mostrar resultados
+                                var html = '<div id="resultadosGoogleHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                var resultadoGoogle = {{resultadosGoogleSearch | tojson}}
+                                for (var i = 4; i < resultadoGoogle.length; i++) {
+                                    var card = resultadoGoogle[i];
+                                    html += '<div class="col">';
+                                    html += '<div class ="card border-info mb-3" style="width: 12 rem">';
+                                    html += '<div class="card-body">';
+                                    html += '<h5 class="card-title">';
+                                    html += '<a class="card-link" target="_blank" href="' + card[1]+'">'
+                                    html += '<div class="card-header text-align:center">';
+                                    html += card[0]
+                                    html += '</div>'
+                                    html += '</a>' 
+                                    html += '</h5>' 
+                                    html += '<h6 class="card-text"><b>Título: </b>' + card[2] + '.</h6>' 
+                                    if(card[3] == "Unknown"){
+                                        html += '<h6 class="card-text"><b>Descripción de la página: </b> No existe descripción sobre esta página. </h6>' 
+                                    } else{
+                                        html += '<h6 class="card-text"><b>Descripción de la página: </b>' +card[3] +'</h6>' 
+                                    }
+                                    html += '</div></div></div>';
+                                } 
+                                html += '</div>'
+                    
+                                // Mostrar HTML generado en el elemento con id "resultadoBusquedaGoogle"
+                                document.getElementById("resultadoBusquedaGoogle").innerHTML = html;
+                                resultadosGoogleVisible = true;
+                            }
+                        }
+                    </script>  
+                </div>
+                {%endif%} 
             {%else%}
                 <div class="mb-4">
                     <p style="text-align:justify"><b>No existen datos en internet sobre esta persona.</b></p>
@@ -97,704 +183,13 @@
 
             {%if darknet%}
                 <div class="col-lg-12 mb-4">
-                    <div class="contenedor-Darknet">
-                        <div class="titulo-Darknet">
-                            <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
-                            <button class="boton-minimizar" data-target="contenido-Darknet-1">
-                                <span id="icono-minimizar">-</span>
-                            </button>
-                        </div>
-                        <div class="contenido-Darknet" id="contenido-Darknet-1">
-                            <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
-                            <p style="text-align:justify">Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
-                            {%if resultadoDarknetNombre|length != 0 %}
-                                <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetNombre|length}} resultados</b>.</p>
-                                <div class="row row-cols-1 row-cols-md-4 g-4">
-                                    {%for card in resultadoDarknetNombre%}
-                                        <div class= "col">
-                                            <div class ="card border-info mb-3" style="width: 12 rem">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">
-                                                        <div class="card-header text-align:center">
-                                                            {{card[0]}} 
-                                                        </div>
-                                                    </h5>
-                                                    <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
-                                                    <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
-                                                    {%if card[2] == "No description provided" %}
-                                                        <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
-                                                    {%else%}
-                                                        <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
-                                                    {%endif%}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {%endfor%}
-                                </div>
-                            {%else%}
-                                <div class="mb-4">
-                                    <p style="text-align:justify"><b>No existen resultados en la Darknet para este nombre.</b></p>
-                                </div>
-                            {%endif%}
-                        </div>
-                    </div>
-                </div>
-            {%endif%}
-        </div>
-    {%endif%}
-
-    {#Nickname#}
-    {% if nickname %}
-        <div class="text-justify mb-4">
-            <h3>Resultados para nickname: <b>{{nickname}}</b></h3>
-            <div class="col-lg-12">
-                <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas y clasificarlas una vez sepas la paleta de colores</p>
-            </div>
-            <div class="row row-cols-1 row-cols-md-4 mb-4 g-4">
-                {%for card in resultadoNickname%}
-                    <div class= "col">
-                        {%if card[1] == "social" %}
-                            <div class ="card bg-social-success h-100" style="width: 12 rem">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a class="card-link" target="_blank" href={{card[2]}}>
-                                            <div class="card-header text-white text-align:center">
-                                                {{card[0]}} 
-                                            </div>
-                                        </a>
-                                    </h5>
-                                    <h6><b>Categoría: </b> {{card[1]}}</h6>
-                                    <p class="card-text">Usuario encontrado</p>
-                                </div>
-                            </div>
-                        {%elif card[1] == "gaming"%}
-                            <div class ="card bg-gaming-success h-100" style="width: 12 rem">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a class="card-link" target="_blank" href={{card[2]}}>
-                                            <div class="card-header text-white text-align:center">
-                                                {{card[0]}} 
-                                            </div>
-                                        </a>
-                                    </h5>
-                                    <h6><b>Categoría: </b> {{card[1]}}</h6>
-                                    <p class="card-text">Usuario encontrado</p>
-                                </div>
-                            </div>
-
-                        {%elif card[1] == "coding"%}
-                            <div class ="card bg-coding-success h-100" style="width: 12 rem">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a class="card-link" target="_blank" href={{card[2]}}>
-                                            <div class="card-header text-white text-align:center">
-                                                {{card[0]}} 
-                                            </div>
-                                        </a>
-                                    </h5>
-                                    <h6><b>Categoría: </b> {{card[1]}}</h6>
-                                    <p class="card-text">Usuario encontrado</p>
-                                </div>
-                            </div>
-
-                        {%elif card[1] == "music"%}
-                            <div class ="card bg-music-success h-100" style="width: 12 rem">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a class="card-link" target="_blank" href={{card[2]}}>
-                                            <div class="card-header text-white text-align:center">
-                                                {{card[0]}} 
-                                            </div>
-                                        </a>
-                                    </h5>
-                                    <h6><b>Categoría: </b> {{card[1]}}</h6>
-                                    <p class="card-text">Usuario encontrado</p>
-                                </div>
-                            </div>
-
-                        {%else%}
-                            <div class ="bg-else-categoria-success h-100" style="width: 12 rem">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a class="card-link" target="_blank" href={{card[2]}}>
-                                            <div class="card-header text-white text-align:center">
-                                                {{card[0]}} 
-                                            </div>
-                                        </a>
-                                    </h5>
-                                    <h6><b>Categoría: </b> {{card[1]}}</h6>
-                                    <p class="card-text">Usuario encontrado</p>
-                                </div>
-                            </div>
-                        {%endif%}
-                    </div>
-                {%endfor%}
-            </div>
-            {%if darknet%}
-                <div class="contenedor-Darknet">
-                    <div class="titulo-Darknet">
-                        <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
-                        <button class="boton-minimizar" data-target="contenido-Darknet-2">
-                            <span id="icono-minimizar">-</span>
-                        </button>
-                    </div>
-                    <div class="contenido-Darknet" id="contenido-Darknet-2">
-                        <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
-                        <p style="text-align:justify">Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
-                        {%if resultadoDarknetNickname|length != 0 %}
-                            <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetNickname|length}} resultados</b>.</p>
-                            <div class="row row-cols-1 row-cols-md-4 g-4">
-                                {%for card in resultadoDarknetNickname%}
-                                    <div class= "col">
-                                        <div class ="card border-info mb-3" style="width: 12 rem">
-                                            <div class="card-body">
-                                                <h5 class="card-title">
-                                                    <div class="card-header text-align:center">
-                                                        {{card[0]}} 
-                                                    </div>
-                                                </h5>
-                                                <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
-                                                <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
-                                                {%if card[2] == "No description provided" %}
-                                                    <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
-                                                {%else%}
-                                                    <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
-                                                {%endif%}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {%endfor%}
-                            </div>
-                        {%else%}
-                            <div class="mb-4">
-                                <p style="text-align:justify"><b>No existen resultados en la Darknet para este nickname.</b></p>
-                            </div>
-                        {%endif%}
-                    </div>
-                </div>
-            {%endif%}
-        </div>
-    {% endif %}
-
-    {#Email and Phone#}
-    {% if email and phone %}
-        <div class="text-justify mb-4 ">
-            <h3>Resultados para email y teléfono: <b>{{email}}, {{phone}}</b>.</h3>
-            <div class="col-lg-12">
-                <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
-            </div>
-            <div class="col-lg-12 mb-4">
-                <h4>Datos aportados por IntelX</h4>
-                <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
-                <div class = "mt-3">
-                    <h6>Para el <b>email</b>:</h6>
-                    {%if resultadosIntelxEmail|length !=0 %}
-                    <div class="row row-cols-1 row-cols-md-4 g-4">
-                        {%for card in resultadosIntelxEmail%}
-                            <div class= "col">
-                                {%if card.get('media') == "CSV File" %}
-                                    <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                    <div class="card-header text-white text-align:center">
-                                                        {{card.get('name')}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                        </div>
-                                    </div>
-                                {%elif card.get('media') == "Text File"%}
-                                    <div class ="card bg-textfile-success h-100" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                    <div class="card-header text-white text-align:center">
-                                                        {{card.get('name')}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                        </div>
-                                    </div>
-
-                                {%elif card.get('media') == "DataBase File"%}
-                                    <div class ="card bg-databasefile-success h-100" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                    <div class="card-header text-white text-align:center">
-                                                        {{card.get('name')}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                        </div>
-                                    </div>
-
-                                {%else%}
-                                    <div class ="card bg-else-email-success h-100" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                    <div class="card-header text-white text-align:center">
-                                                        {{card.get('name')}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                        </div>
-                                    </div>
-                                {%endif%}
-                            </div>
-                        {%endfor%}
-                    </div>
-                    {%else%}
-                    <div class="mb-4">
-                        <p style="text-align:justify">No existen datos comprometidos para este correo</p>
-                    </div>
-                    {%endif%}
-                </div>
-                <div class = "mt-3">
-                    <h6>Para el <b>teléfono</b>:</h6>
-                    {%if resultadosIntelxPhone|length !=0 %}
-                    <div class="row row-cols-1 row-cols-md-4 g-4">
-                        {%for card in resultadosIntelxEmail%}
-                            <div class= "col">
-                                {%if card.get('media') == "CSV File" %}
-                                    <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                    <div class="card-header text-white text-align:center">
-                                                        {{card.get('name')}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                        </div>
-                                    </div>
-                                {%elif card.get('media') == "Text File"%}
-                                    <div class ="card bg-textfile-success h-100" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                    <div class="card-header text-white text-align:center">
-                                                        {{card.get('name')}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                        </div>
-                                    </div>
-
-                                {%elif card.get('media') == "DataBase File"%}
-                                    <div class ="card bg-databasefile-success h-100" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                    <div class="card-header text-white text-align:center">
-                                                        {{card.get('name')}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                        </div>
-                                    </div>
-
-                                {%else%}
-                                    <div class ="card bg-else-email-success h-100" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                    <div class="card-header text-white text-align:center">
-                                                        {{card.get('name')}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                        </div>
-                                    </div>
-                                {%endif%}
-                            </div>
-                        {%endfor%}
-                    </div>
-                    {%else%}
-                    <div class="mb-4">
-                        <p style="text-align:justify">No existen datos comprometidos para este teléfono</p>
-                    </div>
-                    {%endif%}
-                </div>
-            </div>
-            <div class="col-lg-12 mb-4">
-                <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
-                <p style="text-align:justify">En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
-                <p style="text-align:justify">Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
-                <p style="text-align:justify">Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
-
-                {#BREACHES#}
-                <div class = "mt-3">
-                    <h5>Breaches</h5>
-                    {%if resultadosPwnedEmail[0]|length != 0 %}
-                        <h6>Para el <b>email</b>:</h6>
-                        <div class="row row-cols-1 row-cols-md-4 g-4">
-                            {%for card in resultadosPwnedEmail[0]%}
-                                <div class= "col">
-                                    <div class ="card border-info mb-3" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href="{{ ''.join(['http://', card[0]])}}">
-                                                    <div class="card-header text-align:center">
-                                                        {{card[0]}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
-                                            {%if card[2] is none %}
-                                                <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
-                                            {%else%}
-                                                <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]| safe}}.</h6>
-                                            {%endif%}
-                                        </div>
-                                    </div>
-                                </div>
-                            {%endfor%}
-                        </div>
-
-                    {%else%}
-                        <div>
-                            <h6>Para el <b>email</b>:</h6>
-                            <p style="text-align:justify">No existen brechas para este email.</p>
-                        </div>
-                    {%endif%}
-
-                    {%if resultadosPwnedPhone|length != 0 %}
-                        <div class = "mt-3">
-                            <h6>Para el <b>teléfono</b>:</h6>
-                            <div class="row row-cols-1 row-cols-md-4 g-4">
-                                {%for card in resultadosPwnedPhone%}
-                                    <div class= "col">
-                                        <div class ="card border-info mb-3" style="width: 12 rem">
-                                            <div class="card-body">
-                                                <h5 class="card-title">
-                                                    <a class="card-link" target="_blank" href="{{ ''.join(['http://', card[1]])}}">
-                                                        <div class="card-header text-align:center">
-                                                            {{card[0]}} 
-                                                        </div>
-                                                    </a>
-                                                </h5>
-                                                <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
-                                                {%if card[2] is none %}
-                                                    <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
-                                                {%else%}
-                                                    <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]| safe}}.</h6>
-                                                {%endif%}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {%endfor%}
-                            </div>
-                        </div>
-                    {%else%}
-                        <div class=" mt-3">
-                            <h6>Para el <b>teléfono</b>:</h6>
-                            <p style="text-align:justify">No existen brechas para este teléfono.</p>
-                        </div>
-                    {%endif%}
-                </div>
-
-                {#PASTES#}
-                <div class="mt-3">
-                    <h5>Pastes</h5>
-                    {%if resultadosPwnedEmail[1]|length != 0 %}
-                        <p style="text-align:justify">Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
-                        <div class = "mt-3">    
-                            <h6>Para el <b>email</b>:</h6>
-                            <div class="row row-cols-1 row-cols-md-4 g-4">
-                                {%for card in resultadosPwnedEmail[1]%}
-                                    <div class= "col">
-                                        <div class ="card border-info mb-3" style="width: 12 rem">
-                                            <div class="card-body">
-                                                <h5 class="card-title">
-                                                    <a class="card-link" target="_blank" href="{{ ''.join(['http://', card[0]])}}">
-                                                        <div class="card-header text-align:center">
-                                                            {{card[1]}} 
-                                                        </div>
-                                                    </a>
-                                                </h5>
-                                                <h6 class="card-text"><b>Emails comprometidos: </b> {{card[3]}}.</h6>
-                                                {%if card[2] is none %}
-                                                    <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
-                                                {%else%}
-                                                    <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
-                                                {%endif%}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {%endfor%}
-                            </div>
-                        </div>
-                    {%else%}
-                        <div>
-                            <h6>Para el <b>email</b>:</h6>
-                            <p style="text-align:justify">No existen <i>pastes</i> para este email.</p>
-                        </div>
-                    {%endif%}
-                </div>
-            </div>
-            {%if darknet%}
-                <div class="col-lg-12 mb-4">
                     <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
-                    <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
-                    <div class = "mt-3">
-                        <h6>Para el <b>email</b>:</h6>
-                        {%if resultadoDarknetEmail|length != 0 %}
-                            <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetEmail|length}} resultados</b>.</p>
-                            <div class="row row-cols-1 row-cols-md-4 g-4">
-                                {%for card in resultadoDarknetEmail%}
-                                    <div class= "col">
-                                        <div class ="card border-info mb-3" style="width: 12 rem">
-                                            <div class="card-body">
-                                                <h5 class="card-title">
-                                                    <div class="card-header text-align:center">
-                                                        {{card[0]}} 
-                                                    </div>
-                                                </h5>
-                                                <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
-                                                <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
-                                                {%if card[2] == "No description provided" %}
-                                                    <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
-                                                {%else%}
-                                                    <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
-                                                {%endif%}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {%endfor%}
-                            </div>
-                        {%else%}
-                            <div class="mb-4">
-                                <p style="text-align:justify"><b>No existen resultados en la Darknet para este email.</b></p>
-                            </div>
-                        {%endif%}
-                    </div>
-                    <div class = "mt-3">
-                        <h6>Para el <b>teléfono</b>:</h6>
-                        {%if resultadoDarknetPhone|length != 0 %}
-                            <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetPhone|length}} resultados</b>.</p>
-                            <div class="row row-cols-1 row-cols-md-4 g-4">
-                                {%for card in resultadoDarknetPhone%}
-                                    <div class= "col">
-                                        <div class ="card border-info mb-3" style="width: 12 rem">
-                                            <div class="card-body">
-                                                <h5 class="card-title">
-                                                    <div class="card-header text-align:center">
-                                                        {{card[0]}} 
-                                                    </div>
-                                                </h5>
-                                                <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
-                                                <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
-                                                {%if card[2] == "No description provided" %}
-                                                    <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
-                                                {%else%}
-                                                    <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
-                                                {%endif%}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {%endfor%}
-                            </div>
-                        {%else%}
-                            <div class="mb-4">
-                                <p style="text-align:justify"><b>No existen resultados en la Darknet para este teléfono.</b></p>
-                            </div>
-                        {%endif%}
-                    </div>
-                </div>
-            {%endif%}
-
-        </div>
-
-    {# solo Email#}
-    {%elif email %}
-        <div class="text-justify mb-4 ">
-            <h3>Resultados para email: <b>{{email}}</b></h3>
-            <div class="col-lg-12">
-                <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
-            </div>
-            <div class="col-lg-12 mb-4">
-                <h4>Datos aportados por IntelX</h4>
-                <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
-                {%if resultadosIntelxEmail|length !=0 %}
-                <div class="row row-cols-1 row-cols-md-4 g-4">
-                    {%for card in resultadosIntelxEmail%}
-                        <div class= "col">
-                            {%if card.get('media') == "CSV File" %}
-                                <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                <div class="card-header text-white text-align:center">
-                                                    {{card.get('name')}} 
-                                                </div>
-                                            </a>
-                                        </h5>
-                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                    </div>
-                                </div>
-                            {%elif card.get('media') == "Text File"%}
-                                <div class ="card bg-textfile-success h-100" style="width: 12 rem">
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                <div class="card-header text-white text-align:center">
-                                                    {{card.get('name')}} 
-                                                </div>
-                                            </a>
-                                        </h5>
-                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                    </div>
-                                </div>
-
-                            {%elif card.get('media') == "DataBase File"%}
-                                <div class ="card bg-databasefile-success h-100" style="width: 12 rem">
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                <div class="card-header text-white text-align:center">
-                                                    {{card.get('name')}} 
-                                                </div>
-                                            </a>
-                                        </h5>
-                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                    </div>
-                                </div>
-
-                            {%else%}
-                                <div class ="card bg-else-email-success h-100" style="width: 12 rem">
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
-                                                <div class="card-header text-white text-align:center">
-                                                    {{card.get('name')}} 
-                                                </div>
-                                            </a>
-                                        </h5>
-                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
-                                    </div>
-                                </div>
-                            {%endif%}
-                        </div>
-                    {%endfor%}
-                {%else%}
-                    <div class="mb-4">
-                        <p style="text-align:justify">No existen datos comprometidos para este correo</p>
-                    </div>
-                {%endif%}
-                </div>
-            </div>
-            <div class="col-lg-12 mb-4">
-                    <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
-                    <p style="text-align:justify">En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
-                    <p style="text-align:justify">Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
-                    <p style="text-align:justify">Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
-                    {%if resultadosPwnedEmail[0]|length != 0 %}
-                        <h5>Breaches</h5>
+                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    {%if resultadoDarknetNombre|length != 0 %}
+                        <p>Se encontró un total de <b>{{resultadoDarknetNombre|length}} resultados</b>.</p>
                         <div class="row row-cols-1 row-cols-md-4 g-4">
-                            {%for card in resultadosPwnedEmail[0]%}
-                                <div class= "col">
-                                    <div class ="card border-info mb-3" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank" href="{{ ''.join(['http://', card[1]])}}">
-                                                    <div class="card-header text-align:center">
-                                                        {{card[0]}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
-                                            {%if card[2] is none  %}
-                                                <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
-                                            {%else%}
-                                                <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]| safe}}.</h6>
-                                            {%endif%}
-                                        </div>
-                                    </div>
-                                </div>
-                            {%endfor%}
-                        </div>
-                    {%else%}
-                        <div class="mb-4">
-                            <p style="text-align:justify">No existen brechas para este correo.</p>
-                        </div>
-                    {%endif%}
-
-                    {%if resultadosPwnedEmail[1]|length != 0 %}
-                        <h5>Pastes</h5>
-                        <p style="text-align:justify">Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
-                        <div class="row row-cols-1 row-cols-md-4 g-4">
-                            {%for card in resultadosPwnedEmail[1]%}
-                                <div class= "col">
-                                    <div class ="card border-info mb-3" style="width: 12 rem">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="card-link" target="_blank"  href="{{ ''.join(['http://', card[0]])}}">
-                                                    <div class="card-header text-align:center">
-                                                        {{card[1]}} 
-                                                    </div>
-                                                </a>
-                                            </h5>
-                                            <h6 class="card-text"><b>Emails comprometidos: </b> {{card[3]}}.</h6>
-                                            {%if card[2] is none %}
-                                                <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
-                                            {%else%}
-                                                <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
-                                            {%endif%}
-                                        </div>
-                                    </div>
-                                </div>
-                            {%endfor%}
-                        </div>
-                    {%else%}
-                        <div class="mb-4">
-                            <p style="text-align:justify">No existen <i>pastes</i> para este correo.</p>
-                        </div>
-                    {%endif%}
-            </div>
-            {%if darknet%}
-                <div class="col-lg-12 mb-4">
-                    <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
-                    <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
-                    <p style="text-align:justify">Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
-                    {%if resultadoDarknetEmail|length != 0 %}
-                        <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetEmail|length}} resultados</b>.</p>
-                        <div class="row row-cols-1 row-cols-md-4 g-4">
-                            {%for card in resultadoDarknetEmail%}
+                            {%for card in resultadoDarknetNombre[0:4]%}
                                 <div class= "col">
                                     <div class ="card border-info mb-3" style="width: 12 rem">
                                         <div class="card-body">
@@ -815,110 +210,671 @@
                                 </div>
                             {%endfor%}
                         </div>
+                        {%if resultadoDarknetNombre|length > 5%}
+                        <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                            <button class="btn btn-dark" type="button" onclick="toggleDarknetNombreResults()">Mostrar/ocultar el resto de resultados de la Darknet</button>
+                        </div>
+                        <div id="resultadoBusquedaDarknetNombre">
+                            <script>
+                                var resultadosDarknetNombreVisible = false;
+                            
+                                function toggleDarknetNombreResults() {
+                                    if (resultadosDarknetNombreVisible) {
+                                        // Ocultar resultados
+                                        document.getElementById("resultadosDarknetNombreHide").style.display = "none";
+                                        resultadosDarknetNombreVisible = false;
+                                    } else {
+                                        // Generar HTML para mostrar resultados
+                                        var html = '<div id="resultadosDarknetNombreHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                        var resultadoDarknetNombre = {{resultadoDarknetNombre | tojson}}
+                                        for (var i = 4; i < resultadoDarknetNombre.length; i++) {
+                                            var card = resultadoDarknetNombre[i];
+                                            html += '<div class="col">';
+                                            html += '<div class ="card border-info mb-3" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<div class="card-header text-align:center">';
+                                            html += card [0]
+                                            html += '</div>'
+                                            html += '</h5>' 
+                                            html += '<h6 class="card-text"><b>Enlace cifrado: </b>' + card[1] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b>' + card[3] + '</h6>'
+                                            if(card[2] == "No description provided"){
+                                                html += '<h6 class="card-text"><b>Descripción: </b>No existe descripción sobre la página. </h6>' 
+                                            } else{
+                                                html += '<h6 class="card-text"><b>Descripción: </b>' +card[2] +'</h6>' 
+                                            }
+                                            html += '</div></div></div>';
+                                        } 
+                                        html += '</div>'
+                            
+                                        // Mostrar HTML generado en el elemento con id "resultadoBusquedaDarknetNombre"
+                                        document.getElementById("resultadoBusquedaDarknetNombre").innerHTML = html;
+                                        resultadosDarknetNombreVisible = true;
+                                    }
+                                }
+                            </script>  
+                        </div>
+                    {%endif%}
                     {%else%}
                         <div class="mb-4">
-                            <p style="text-align:justify"><b>No existen resultados en la Darknet para este email.</b></p>
+                            <p>No existen resultados en la Darknet para este nombre.</p>
                         </div>
                     {%endif%}
                 </div>
             {%endif%}
         </div>
-    
-    {#solo Phone#}
-    {% elif phone %}
-        <div class="text-justify mb-4 ">
-            <h3>Resultados para el teléfono: <b>{{phone}}</b></h3>
-            <div class="col-lg-12">
-                <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
-            </div>
-            <div class="col-lg-12 mb-4">
-                <h4>Datos aportados por IntelX</h4>
-                <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más información sobre esta página clicka en el link.</p>
-                {%if resultadosIntelxPhone|length !=0 %}
-                <div class="row row-cols-1 row-cols-md-4 g-4">
-                    {%for card in resultadosIntelxPhone%}
+    {%endif%}
+
+    {#Nickname#}
+    {% if nickname %}
+        <div class="text-justify mt-4 mb-4">
+            <h3 style="text-align: center">Resultados para nickname: <b>{{nickname}}</b></h3>
+            {%if resultadoNickname|length !=0 %}
+                <div class="col-lg-12">
+                    <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas y clasificarlas una vez sepas la paleta de colores</p>
+                </div>
+                <div>
+                    <canvas id="nicknameChart"></canvas>
+                    <script>
+                        var clavesNickname = {{graficaNickname[0] | tojson}};
+                        var valoresNickname = {{graficaNickname[1]}};
+
+                        var colorsNickname = new Array(clavesNickname.length).fill("#F28482"); // asignamos color por defecto a cada label
+                        var indexNickname = clavesNickname.indexOf("social"); // index para categoria social
+                        colorsNickname[indexNickname] = "#F5CAC3"; // asignamos el color al label social
+                        var indexNickname = clavesNickname.indexOf("gaming"); // index para categoria gaming
+                        colorsNickname[indexNickname] = "#F6BD60"; // asignamos el color al label gaming
+                        var indexNickname = clavesNickname.indexOf("coding"); // index para categoria coding
+                        colorsNickname[indexNickname] = "#F7EDE2"; // asignamos el color al label coding
+                        var indexNickname = clavesNickname.indexOf("music"); // index para categoria music
+                        colorsNickname[indexNickname] = "#84A59D"; // asignamos el color al label music
+                        var indexNickname = clavesNickname.indexOf("hobby"); // index para categoria hobby
+                        colorsNickname[indexNickname] = "#F7934C"; // asignamos el color al label hobby          
+                        
+                        var verticalNicknameChart = new Chart(document.getElementById('nicknameChart'), {
+                            type: 'bar',
+                            data: {
+                            labels: clavesNickname,
+                            datasets: [{
+                                data: valoresNickname,
+                                backgroundColor: colorsNickname
+                            }]
+                            },
+                            options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false  // Desactiva la leyenda de la gráfica
+                                    }
+                            }
+                            }
+                        });
+                        //Hacemos responsive el grafico
+                        var canvas = document.getElementById('nicknameChart');
+                        var heightRatio = 1.5;
+                        canvas.height = canvas.width * heightRatio;
+                    </script>
+                </div>
+                <div class="row row-cols-1 row-cols-md-4 mb-4 g-4">
+                    {%for card in resultadoNickname[0:8]%}
                         <div class= "col">
-                            {%if card.get('media') == "CSV File" %}
-                                <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
+                            {%if card[1] == "social" %}
+                                <div class ="card bg-social-success h-100" style="width: 12 rem">
                                     <div class="card-body">
                                         <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                            <a class="card-link" target="_blank" href={{card[2]}}>
                                                 <div class="card-header text-white text-align:center">
-                                                    {{card.get('name')}} 
+                                                    {{card[0]}} 
                                                 </div>
                                             </a>
                                         </h5>
-                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                        <p class="card-text">Usuario encontrado</p>
                                     </div>
                                 </div>
-                            {%elif card.get('media') == "Text File"%}
-                                <div class ="card bg-textfile-success h-100" style="width: 12 rem">
+                            {%elif card[1] == "gaming"%}
+                                <div class ="card bg-gaming-success h-100" style="width: 12 rem">
                                     <div class="card-body">
                                         <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                            <a class="card-link" target="_blank" href={{card[2]}}>
                                                 <div class="card-header text-white text-align:center">
-                                                    {{card.get('name')}} 
+                                                    {{card[0]}} 
                                                 </div>
                                             </a>
                                         </h5>
-                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                        <p class="card-text">Usuario encontrado</p>
                                     </div>
                                 </div>
 
-                            {%elif card.get('media') == "DataBase File"%}
-                                <div class ="card bg-databasefile-success h-100" style="width: 12 rem">
+                            {%elif card[1] == "coding"%}
+                                <div class ="card bg-coding-success h-100" style="width: 12 rem">
                                     <div class="card-body">
                                         <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                            <a class="card-link" target="_blank" href={{card[2]}}>
                                                 <div class="card-header text-white text-align:center">
-                                                    {{card.get('name')}} 
+                                                    {{card[0]}} 
                                                 </div>
                                             </a>
                                         </h5>
-                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                        <p class="card-text">Usuario encontrado</p>
+                                    </div>
+                                </div>
+
+                            {%elif card[1] == "music"%}
+                                <div class ="card bg-music-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card[2]}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                        <p class="card-text">Usuario encontrado</p>
+                                    </div>
+                                </div>
+
+                                {%elif card[1] == "hobby"%}
+                                <div class ="card bg-hobby-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card[2]}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                        <p class="card-text">Usuario encontrado</p>
                                     </div>
                                 </div>
 
                             {%else%}
-                                <div class ="card bg-else-email-success h-100" style="width: 12 rem">
+                                <div class ="bg-else-categoria-success h-100" style="width: 12 rem">
                                     <div class="card-body">
                                         <h5 class="card-title">
-                                            <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                            <a class="card-link" target="_blank" href={{card[2]}}>
                                                 <div class="card-header text-white text-align:center">
-                                                    {{card.get('name')}} 
+                                                    {{card[0]}} 
                                                 </div>
                                             </a>
                                         </h5>
-                                        <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
-                                        <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
-                                        <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                        <p class="card-text">Usuario encontrado</p>
                                     </div>
                                 </div>
                             {%endif%}
                         </div>
                     {%endfor%}
-                {%else%}
-                    <div class="mb-4">
-                        <p style="text-align:justify">No existen datos comprometidos para este teléfono</p>
+                </div>
+                {%if resultadoNickname|length > 9%}
+                    <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                        <button class="btn btn-primary" type="button" onclick="toggleNicknameResults()">Mostrar/ocultar el resto de resultados Nickname</button>
+                    </div>
+                    <div id="resultadoBusquedaNickname">
+                        <script>
+                            var resultadosNicknameVisible = false;
+                        
+                            function toggleNicknameResults() {
+                                if (resultadosNicknameVisible) {
+                                    // Ocultar resultados
+                                    document.getElementById("resultadosNicknameHide").style.display = "none";
+                                    resultadosNicknameVisible = false;
+                                } else {
+                                    // Generar HTML para mostrar resultados
+                                    var html = '<div id="resultadosNicknameHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                    var resultadoNickname = {{resultadoNickname | tojson}}
+                                    for (var i = 8; i < resultadoNickname.length; i++) {
+                                        var card = resultadoNickname[i];
+                                        if(card[1] == "social"){
+                                            html += '<div class="col">';
+                                            html += '<div class ="card bg-social-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[2]+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card[0]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Categoría: </b>' + card[1] + '</h6>' 
+                                            html += '<p class="card-text">Usuario encontrado</p>' 
+                                            html += '</div></div></div>';
+                                        }
+                                        else if(card[1] == "gaming"){
+                                            html += '<div class="col">';
+                                            html += '<div class ="card bg-gaming-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[2]+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card[0]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Categoría: </b>' + card[1] + '</h6>' 
+                                            html += '<p class="card-text">Usuario encontrado</p>' 
+                                            html += '</div></div></div>';
+                                        }
+                                        else if(card[1] == "coding"){
+                                            html += '<div class="col">';
+                                            html += '<div class ="card bg-coding-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[2]+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card[0]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Categoría: </b>' + card[1] + '</h6>' 
+                                            html += '<p class="card-text">Usuario encontrado</p>' 
+                                            html += '</div></div></div>';
+                                        }
+                                        else if(card[1] == "music"){
+                                            html += '<div class="col">';
+                                            html += '<div class ="card bg-music-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[2]+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card[0]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Categoría: </b>' + card[1] + '</h6>' 
+                                            html += '<p class="card-text">Usuario encontrado</p>' 
+                                            html += '</div></div></div>';
+                                        }
+                                        else{
+                                            html += '<div class="col">';
+                                            html += '<div class ="card bg-else-categoria-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[2]+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card[0]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Categoría: </b>' + card[1] + '</h6>' 
+                                            html += '<p class="card-text">Usuario encontrado</p>' 
+                                            html += '</div></div></div>';
+                                        }
+                                    }
+                        
+                                    // Mostrar HTML generado en el elemento con id "resultadoBusquedaNickname"
+                                    document.getElementById("resultadoBusquedaNickname").innerHTML = html;
+                                    resultadosNicknameVisible = true;
+                                }
+                            }
+                        </script>  
                     </div>
                 {%endif%}
+            {%else%}
+                <div class="mb-4">
+                    <p style="text-align:justify">No existen webs donde esté registrado este nickname</p>
                 </div>
+            {%endif%}
+
+            {%if darknet%}
+                <div class="col-lg-12 mb-4">
+                    <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
+                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    {%if resultadoDarknetNickname|length != 0 %}
+                        <p>Se encontró un total de <b>{{resultadoDarknetNickname|length}} resultados</b>.</p>
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {%for card in resultadoDarknetNickname[0:4]%}
+                                <div class= "col">
+                                    <div class ="card border-info mb-3" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </h5>
+                                            <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
+                                            <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
+                                            {%if card[2] == "No description provided" %}
+                                                <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
+                                            {%else%}
+                                                <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
+                                            {%endif%}
+                                        </div>
+                                    </div>
+                                </div>
+                            {%endfor%}
+                        </div>
+                        {%if resultadoDarknetNickname|length > 5%}
+                        <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                            <button class="btn btn-dark" type="button" onclick="toggleDarknetNicknameResults()">Mostrar/ocultar el resto de resultados de la Darknet</button>
+                        </div>
+                        <div id="resultadoBusquedaDarknetNickname">
+                            <script>
+                                var resultadosDarknetNicknameVisible = false;
+                            
+                                function toggleDarknetNicknameResults() {
+                                    if (resultadosDarknetNicknameVisible) {
+                                        // Ocultar resultados
+                                        document.getElementById("resultadosDarknetNicknameHide").style.display = "none";
+                                        resultadosDarknetNicknameVisible = false;
+                                    } else {
+                                        // Generar HTML para mostrar resultados
+                                        var html = '<div id="resultadosDarknetNicknameHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                        var resultadoDarknetNickname = {{resultadoDarknetNickname | tojson}}
+                                        for (var i = 4; i < resultadoDarknetNickname.length; i++) {
+                                            var card = resultadoDarknetNickname[i];
+                                            html += '<div class="col">';
+                                            html += '<div class ="card border-info mb-3" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<div class="card-header text-align:center">';
+                                            html += card [0]
+                                            html += '</div>'
+                                            html += '</h5>' 
+                                            html += '<h6 class="card-text"><b>Enlace cifrado: </b>' + card[1] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b>' + card[3] + '</h6>'
+                                            if(card[2] == "No description provided"){
+                                                html += '<h6 class="card-text"><b>Descripción: </b>No existe descripción sobre la página. </h6>' 
+                                            } else{
+                                                html += '<h6 class="card-text"><b>Descripción: </b>' +card[2] +'</h6>' 
+                                            }
+                                            html += '</div></div></div>';
+                                        } 
+                                        html += '</div>'
+                            
+                                        // Mostrar HTML generado en el elemento con id "resultadoBusquedaDarknetNickname"
+                                        document.getElementById("resultadoBusquedaDarknetNickname").innerHTML = html;
+                                        resultadosDarknetNicknameVisible = true;
+                                    }
+                                }
+                            </script>  
+                        </div>
+                    {%endif%}
+                    {%else%}
+                        <div class="mb-4">
+                            <p>No existen resultados en la Darknet para este nombre.</p>
+                        </div>
+                    {%endif%}
+                </div>
+            {%endif%}
+        </div>
+    {% endif %}
+
+
+    {# solo Email#}
+    {%if email %}
+        <div class="text-justify mt-4 mb-4 ">
+            <div class="col-lg-12 mb-4">
+                <div class="d-grid col-lg-12 mx-auto">
+                    <h3 style="text-align: center">Resultados para el email: <b>{{email}}</b></h3>
+                </div>
+                <h4>Datos aportados por IntelX</h4>
+                {%if resultadosIntelxEmail|length !=0 %}
+                    <div class="col-lg-12">
+                        <p style="text-align:justify">Dashboard de gráficas con información del email aportado</p>
+                    </div>
+                    <div id="wrapper">
+                        <div class="content-area">
+                            <div class="container-fluid">
+                                <div class="main">
+                                    <div class="row mt-5 mb-4">
+                                        <div class="col-md-6">
+                                            <div class="box">
+                                                <div id="barHorizontalIntelxEmail"> </div>
+                                            </div>
+                                        </div>
+                                        <div id="donete" class="col-md-6">
+                                            <div class="box">
+                                                <div id="donutIntelxEmail"> </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                
+                                    <div class="row mt-4 mb-4">
+                                        <div class="col-md-12">
+                                            <div class="box">
+                                                <div id="barVerticalIntelxEmail"> </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        var resultadosIntelxEmail = {{resultadosIntelxEmail | tojson}}
+                        var diccionarioTipoEmail = {{diccionarioTipoEmail | tojson}}
+                        var diccionarioTamanyoEmail = {{diccionarioTamanyoEmail | tojson}}
+                        var diccionarioFechasEmail = {{diccionarioFechasEmail | tojson}}
+                    </script>
+                    <script type="text/javascript" src="{{ url_for('static', filename='js/dashboardEmailIntelx.js') }}"></script>
+                    <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
+                    <div class="col-lg-12">
+                        <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
+                    </div>
+                    <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
+                    <div class="row row-cols-1 row-cols-md-4 mb-4 g-4">
+                        {%for card in resultadosIntelxEmail[0:8]%}
+                            <div class= "col">
+                                {%if card.get('media') == "CSV File" %}
+                                    <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+                                {%elif card.get('media') == "Text File"%}
+                                    <div class ="card bg-textfile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+
+                                {%elif card.get('media') == "DataBase File"%}
+                                    <div class ="card bg-databasefile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+
+                                {%else%}
+                                    <div class ="card bg-else-email-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+                                {%endif%}
+                            </div>
+                        {%endfor%}
+                    </div>
+                    {%if resultadosIntelxEmail|length > 9%}
+                    <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                        <button class="btn btn-primary" type="button" onclick="toggleIntelXEmailResults()">Mostrar/ocultar el resto de resultados por parte de IntelX para el email</button>
+                    </div>
+                    <div id="resultadoBusquedaIntelXEmail">
+                        <script>
+                            var resultadosIntelXEmailVisible = false;
+                        
+                            function toggleIntelXEmailResults() {
+                                if (resultadosIntelXEmailVisible) {
+                                    // Ocultar resultados
+                                    document.getElementById("resultadosIntelXEmailHide").style.display = "none";
+                                    resultadosIntelXEmailVisible = false;
+                                } else {
+                                    // Generar HTML para mostrar resultados
+                                    var html = '<div id="resultadosIntelXEmailHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                    var resultadosIntelXEmail = {{resultadosIntelxEmail | tojson}}
+                                    for (var i = 8; i < resultadosIntelXEmail.length; i++) {
+                                        var card = resultadosIntelXEmail[i];
+                                        html += '<div class="col">';
+                                        if(card['media'] == "CSV File"){
+                                            html += '<div class ="card bg-csvfile-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card['link']+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card['name']
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Fecha cuando se publicó el leak: </b>' + card['date'] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Tamaño del archivo: </b>' + card['bytes'] +'Bytes</h6>' 
+                                            html += '<h6 class="card-text"><b>Tipo de archivo: </b>' + card['media'] +'</h6>' 
+                                            html += '</div></div>';
+                                        }
+                                        else if(card['media'] == "Text File"){
+                                            html += '<div class ="card bg-textfile-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                                html += '<a class="card-link" target="_blank" href="'+ card['link']+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card['name']
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Fecha cuando se publicó el leak: </b>' + card['date'] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Tamaño del archivo: </b>' + card['bytes'] +'Bytes</h6>' 
+                                            html += '<h6 class="card-text"><b>Tipo de archivo: </b>' + card['media'] +'</h6>' 
+                                            html += '</div></div>';
+                                        }
+                                        else if(card['media'] == "DataBase File"){
+                                            html += '<div class ="card bg-databasefile-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                                html += '<a class="card-link" target="_blank" href="'+ card['link']+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card['name']
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Fecha cuando se publicó el leak: </b>' + card['date'] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Tamaño del archivo: </b>' + card['bytes'] +'Bytes</h6>' 
+                                            html += '<h6 class="card-text"><b>Tipo de archivo: </b>' + card['media'] +'</h6>' 
+                                            html += '</div></div>';
+                                        }
+                                        else{
+                                            html += '<div class ="card bg-else-email-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                                html += '<a class="card-link" target="_blank" href="'+ card['link']+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card['name']
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Fecha cuando se publicó el leak: </b>' + card['date'] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Tamaño del archivo: </b>' + card['bytes'] +'Bytes</h6>' 
+                                            html += '<h6 class="card-text"><b>Tipo de archivo: </b>' + card['media'] +'</h6>' 
+                                            html += '</div></div>';
+                                        }
+                                        html +='</div>'
+                                    }
+                        
+                                    // Mostrar HTML generado en el elemento con id "resultadoBusquedaIntelXEmail"
+                                    document.getElementById("resultadoBusquedaIntelXEmail").innerHTML = html;
+                                    resultadosIntelXEmailVisible = true;
+                                }
+                            }
+                        </script>  
+                    </div>
+                    {%endif%}
+                {%else%}
+                    <div class="mb-4">
+                        <p style="text-align:justify">No existen datos en IntelX comprometidos para este correo</p>
+                    </div>
+                {%endif%}
             </div>
             <div class="col-lg-12 mb-4">
                 <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
-                <p style="text-align:justify">En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
-                <p style="text-align:justify">Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
-                <p style="text-align:justify">Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
-                {%if resultadosPwnedPhone|length != 0 %}
+                {%if resultadosPwnedEmail[0]|length != 0 %}
+                    <div class="col-lg-12">
+                        <p style="text-align:justify">En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
+                        <p style="text-align:justify">Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                        <p style="text-align:justify">Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
+                        <p style="text-align:justify">Dashboard de gráficas con información del email aportado.</p>
+                    </div>
+                    <div id="wrapper">
+                        <div class="content-area">
+                            <div class="container-fluid">
+                                <div class="main">
+                                    <div class="row mt-5 mb-4">
+                                        <div class="col-md-6">
+                                            <div class="box">
+                                                <div id="barHorizontalHibpEmail"> </div>
+                                            </div>
+                                        </div>
+                                        <div id="donete" class="col-md-6">
+                                            <div class="box">
+                                                <div id="donutHibpEmail"> </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                
+                                    <div class="row mt-4 mb-4">
+                                        <div class="col-md-12">
+                                            <div class="box">
+                                                <div id="barVerticalHibpEmail"> </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        var resultadosPwnedEmail = {{resultadosPwnedEmail | tojson}}
+                    </script>
+                    <script type="text/javascript" src="{{ url_for('static', filename='js/dashboardEmailHIBP.js') }}"></script>
+                    <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
+                    <div class="col-lg-12">
+                        <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
+                    </div>
+                    <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://haveibeenpwned.com">Have I Been Pwned</a>, para más info sobre esta página clicka en el link .</p>
                     <h5>Breaches</h5>
                     <div class="row row-cols-1 row-cols-md-4 g-4">
-                        {%for card in resultadosPwnedPhone%}
+                        {%for card in resultadosPwnedEmail[0][0:4]%}
                             <div class= "col">
                                 <div class ="card border-info mb-3" style="width: 12 rem">
                                     <div class="card-body">
@@ -929,32 +885,158 @@
                                                 </div>
                                             </a>
                                         </h5>
-                                        <h6 class="card-text"><b>Datos comprometidos: </b> {{card[3]}}.</h6>
-                                        {%if card[2] is none %}
+                                        <h6 class="card-text"><b>Datos comprometidos: </b> {{card[4]}}.</h6>
+                                        {%if card[2] is none  %}
                                             <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
                                         {%else%}
-                                            <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[2]| safe}}.</h6>
+                                            <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[3]| safe}}.</h6>
                                         {%endif%}
                                     </div>
                                 </div>
                             </div>
                         {%endfor%}
                     </div>
+                    {%if resultadosPwnedEmail[0]|length > 5 %}
+                        <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                            <button class="btn btn-primary" type="button" onclick="toggleHIBPEmailBreachResults()">Mostrar/ocultar el resto de <i>Breaches</i> por parte de HIBP para el email</button>
+                        </div>
+                        <div id="resultadoBusquedaHIBPEmailBreach">
+                            <script>
+                                var resultadosHIBPEmailBreachVisible = false;
+                            
+                                function toggleHIBPEmailBreachResults() {
+                                    if (resultadosHIBPEmailBreachVisible) {
+                                        // Ocultar resultados
+                                        document.getElementById("resultadosHIBPEmailBreachHide").style.display = "none";
+                                        resultadosHIBPEmailBreachVisible = false;
+                                    } else {
+                                        // Generar HTML para mostrar resultados
+                                        var html = '<div id="resultadosHIBPEmailBreachHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                        let resultadosPwnedEmail = {{resultadosPwnedEmail | tojson}}
+                                        var resultadosHIBPEmailBreach = resultadosPwnedEmail[0]
+                                        for (var i = 4; i < resultadosHIBPEmailBreach.length; i++) {
+                                            var card = resultadosHIBPEmailBreach[i];
+                                            html += '<div class="col">';
+                                            html += '<div class ="card border-info mb-3" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[1]+'">';
+                                            html += '<div class="card-header text-align:center">';
+                                            html += card[0]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6 class="card-text"><b>Datos comprometidos: </b>' + card[4] + '</h6>'
+                                            if(card[2] == null){
+                                                html += '<h6 class="card-text"><b>Descripción de la brecha: </b>No existe descripción sobre esta brecha.</h6>'
+                                            }else{
+                                                html += '<h6 class="card-text"><b>Descripción de la brecha:</b>' + card[3] + '</h6>'
+                                            }
+                                            html += '</div></div></div>';
+                                        }
+                            
+                                        // Mostrar HTML generado en el elemento con id "resultadoBusquedaHIBPEmail"
+                                        document.getElementById("resultadoBusquedaHIBPEmailBreach").innerHTML = html;
+                                        resultadosHIBPEmailBreachVisible = true;
+                                    }
+                                }
+                            </script>  
+                        </div>
+                    {%endif%}
                 {%else%}
                     <div class="mb-4">
                         <p style="text-align:justify">No existen brechas para este correo.</p>
+                    </div>
+                {%endif%}
+
+                {%if resultadosPwnedEmail[1]|length != 0 %}
+                    <h5>Pastes</h5>
+                    <p style="text-align:justify">Tenga en cuenta que puede que los links ya estén caídos o sin información. Pero esto no quiere decir que ningún tercero haya podido registrar estos emails antes de que cayera el link, solamente significa que ya no están disponibles.</p>
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        {%for card in resultadosPwnedEmail[1][0:4]%}
+                            <div class= "col">
+                                <div class ="card border-info mb-3" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank"  href="{{card[0]}}">
+                                                <div class="card-header text-align:center">
+                                                    {{card[1]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6 class="card-text"><b>Emails comprometidos: </b> {{card[3]}}.</h6>
+                                        {%if card[2] is none %}
+                                            <h6 class="card-text"><b>Fecha de la publicación:</b> Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>
+                                        {%else%}
+                                            <h6 class="card-text"><b>Fecha de la publicación:</b> {{card[2]}}.</h6>
+                                        {%endif%}
+                                    </div>
+                                </div>
+                            </div>
+                        {%endfor%}
+                    </div>
+                    {%if resultadosPwnedEmail[1]|length > 5 %}
+                        <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                            <button class="btn btn-primary" type="button" onclick="toggleHIBPEmailPasteResults()">Mostrar/ocultar el resto de <i>Pastes</i> por parte de HIBP para el email</button>
+                        </div>
+                        <div id="resultadoBusquedaHIBPEmailPaste">
+                            <script>
+                                var resultadosHIBPEmailPasteVisible = false;
+                            
+                                function toggleHIBPEmailPasteResults() {
+                                    if (resultadosHIBPEmailPasteVisible) {
+                                        // Ocultar resultados
+                                        document.getElementById("resultadosHIBPEmailPasteHide").style.display = "none";
+                                        resultadosHIBPEmailPasteVisible = false;
+                                    } else {
+                                        // Generar HTML para mostrar resultados
+                                        var html = '<div id="resultadosHIBPEmailPasteHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                        let resultadosPwnedEmail = {{resultadosPwnedEmail | tojson}}
+                                        var resultadosHIBPEmailPaste = resultadosPwnedEmail[1]
+                                        for (var i = 4; i < resultadosHIBPEmailPaste.length; i++) {
+                                            var card = resultadosHIBPEmailPaste[i];
+                                            html += '<div class="col">';
+                                            html += '<div class ="card border-info mb-3" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[0]+'">';
+                                            html += '<div class="card-header text-align:center">';
+                                            html += card[1]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6 class="card-text"><b>Emails comprometidos: </b>'+card[3]+'</h6>'
+                                            if(card[2] == null){
+                                                html += '<h6 class="card-text"><b>Fecha de la publicación: </b>Se desconoce la fecha de publicación sobre este <i>paste</i>.</h6>'
+                                            }else{
+                                                html += '<h6 class="card-text"><b>Fecha de la publicación:</b>' + card[2] + '</h6>'
+                                            }
+                                            html += '</div></div></div>';
+                                        }
+                            
+                                        // Mostrar HTML generado en el elemento con id "resultadoBusquedaHIBPEmail"
+                                        document.getElementById("resultadoBusquedaHIBPEmailPaste").innerHTML = html;
+                                        resultadosHIBPEmailPasteVisible = true;
+                                    }
+                                }
+                            </script>  
+                        </div>
+                    {%endif%}
+                {%else%}
+                    <div class="mb-4">
+                        <p style="text-align:justify">No existen <i>pastes</i> para este correo.</p>
                     </div>
                 {%endif%}
             </div>
             {%if darknet%}
                 <div class="col-lg-12 mb-4">
                     <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
-                    <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
-                    <p style="text-align:justify">Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
-                    {%if resultadoDarknetPhone|length != 0 %}
-                        <p style="text-align:justify">Se encontró un total de <b>{{resultadoDarknetPhone|length}} resultados</b>.</p>
+                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    {%if resultadoDarknetEmail|length != 0 %}
+                        <p>Se encontró un total de <b>{{resultadoDarknetEmail|length}} resultados</b>.</p>
                         <div class="row row-cols-1 row-cols-md-4 g-4">
-                            {%for card in resultadoDarknetPhone%}
+                            {%for card in resultadoDarknetEmail[0:4]%}
                                 <div class= "col">
                                     <div class ="card border-info mb-3" style="width: 12 rem">
                                         <div class="card-body">
@@ -975,9 +1057,475 @@
                                 </div>
                             {%endfor%}
                         </div>
+                        {%if resultadoDarknetEmail|length > 5%}
+                        <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                            <button class="btn btn-dark" type="button" onclick="toggleDarknetEmailResults()">Mostrar/ocultar el resto de resultados de la Darknet</button>
+                        </div>
+                        <div id="resultadoBusquedaDarknetEmail">
+                            <script>
+                                var resultadosDarknetEmailVisible = false;
+                            
+                                function toggleDarknetEmailResults() {
+                                    if (resultadosDarknetEmailVisible) {
+                                        // Ocultar resultados
+                                        document.getElementById("resultadosDarknetEmailHide").style.display = "none";
+                                        resultadosDarknetEmailVisible = false;
+                                    } else {
+                                        // Generar HTML para mostrar resultados
+                                        var html = '<div id="resultadosDarknetEmailHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                        var resultadoDarknetEmail = {{resultadoDarknetEmail | tojson}}
+                                        for (var i = 4; i < resultadoDarknetEmail.length; i++) {
+                                            var card = resultadoDarknetEmail[i];
+                                            html += '<div class="col">';
+                                            html += '<div class ="card border-info mb-3" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<div class="card-header text-align:center">';
+                                            html += card [0]
+                                            html += '</div>'
+                                            html += '</h5>' 
+                                            html += '<h6 class="card-text"><b>Enlace cifrado: </b>' + card[1] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b>' + card[3] + '</h6>'
+                                            if(card[2] == "No description provided"){
+                                                html += '<h6 class="card-text"><b>Descripción: </b>No existe descripción sobre la página. </h6>' 
+                                            } else{
+                                                html += '<h6 class="card-text"><b>Descripción: </b>' +card[2] +'</h6>' 
+                                            }
+                                            html += '</div></div></div>';
+                                        } 
+                                        html += '</div>'
+                            
+                                        // Mostrar HTML generado en el elemento con id "resultadoBusquedaDarknetEmail"
+                                        document.getElementById("resultadoBusquedaDarknetEmail").innerHTML = html;
+                                        resultadosDarknetEmailVisible = true;
+                                    }
+                                }
+                            </script>  
+                        </div>
+                    {%endif%}
                     {%else%}
                         <div class="mb-4">
-                            <p style="text-align:justify"><b>No existen resultados en la Darknet para este teléfono.</b></p>
+                            <p>No existen resultados en la Darknet para este nombre.</p>
+                        </div>
+                    {%endif%}
+                </div>
+            {%endif%}
+        </div>
+    {%endif%}
+    {#solo Phone#}
+    {% if phone %}
+        <div class="text-justify mt-4 mb-4 ">
+            <div class="col-lg-12 mb-4">
+                <div class="d-grid col-lg-12 mx-auto">
+                    <h3 style="text-align: center">Resultados para el teléfono: <b>{{phone}}</b></h3>
+                </div>
+                <h4>Datos aportados por IntelX</h4>
+                {%if resultadosIntelxPhone|length != 0 %}
+                    <div class="col-lg-12">
+                        <p style="text-align:justify">Dashboard de gráficas con información del teléfono aportado</p>
+                    </div>
+                    <div id="wrapper">
+                        <div class="content-area">
+                            <div class="container-fluid">
+                                <div class="main">
+                                    <div class="row mt-5 mb-4">
+                                        <div class="col-md-6">
+                                            <div class="box">
+                                                <div id="barHorizontalIntelxPhone"> </div>
+                                            </div>
+                                        </div>
+                                        <div id="donete" class="col-md-6">
+                                            <div class="box">
+                                                <div id="donutIntelxPhone"> </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                
+                                    <div class="row mt-4 mb-4">
+                                        <div class="col-md-12">
+                                            <div class="box">
+                                                <div id="barVerticalIntelxPhone"> </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        var resultadosIntelxPhone = {{resultadosIntelxPhone | tojson}}
+                        var diccionarioTipoPhone = {{diccionarioTipoPhone | tojson}}
+                        var diccionarioTamanyoPhone = {{diccionarioTamanyoPhone | tojson}}
+                        var diccionarioFechasPhone = {{diccionarioFechasPhone | tojson}}
+                    </script>
+                    <script type="text/javascript" src="{{ url_for('static', filename='js/dashboardPhoneIntelx.js') }}"></script>
+                    <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
+                    <div class="col-lg-12">
+                        <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
+                    </div>
+                    <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
+                    <div class="row row-cols-1 row-cols-md-4 mb-4 g-4">
+                        {%for card in resultadosIntelxPhone[0:8]%}
+                            <div class= "col">
+                                {%if card.get('media') == "CSV File" %}
+                                    <div class ="card bg-csvfile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+                                {%elif card.get('media') == "Text File"%}
+                                    <div class ="card bg-textfile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+
+                                {%elif card.get('media') == "DataBase File"%}
+                                    <div class ="card bg-databasefile-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+
+                                {%else%}
+                                    <div class ="card bg-else-email-success h-100" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" target="_blank" href={{card.get('link')}}>
+                                                    <div class="card-header text-white text-align:center">
+                                                        {{card.get('name')}} 
+                                                    </div>
+                                                </a>
+                                            </h5>
+                                            <h6><b>Fecha cuando se publicó el leak:</b> {{card.get('date')}}</h6>
+                                            <h6 class="card-text"><b>Tamaño del archivo: </b> {{card.get('bytes')}} Bytes</h6>
+                                            <h6 class="card-text"><b>Tipo de archivo: </b>  {{card.get('media')}}</h6>
+                                        </div>
+                                    </div>
+                                {%endif%}
+                            </div>
+                        {%endfor%}
+                    </div>
+                    {%if resultadosIntelxPhone|length > 9%}
+                    <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                        <button class="btn btn-primary" type="button" onclick="toggleIntelXPhoneResults()">Mostrar/ocultar el resto de resultados por parte de IntelX para el teléfono</button>
+                    </div>
+                    <div id="resultadoBusquedaIntelXPhone">
+                        <script>
+                            var resultadosIntelXPhoneVisible = false;
+                        
+                            function toggleIntelXPhoneResults() {
+                                if (resultadosIntelXPhoneVisible) {
+                                    // Ocultar resultados
+                                    document.getElementById("resultadosIntelXPhoneHide").style.display = "none";
+                                    resultadosIntelXPhoneVisible = false;
+                                } else {
+                                    // Generar HTML para mostrar resultados
+                                    var html = '<div id="resultadosIntelXPhoneHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                    var resultadosIntelXPhone = {{resultadosIntelxPhone | tojson}}
+                                    for (var i = 8; i < resultadosIntelXPhone.length; i++) {
+                                        var card = resultadosIntelXPhone[i];
+                                        html += '<div class="col">';
+                                        if(card['media'] == "CSV File"){
+                                            html += '<div class ="card bg-csvfile-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card['link']+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card['name']
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Fecha cuando se publicó el leak: </b>' + card['date'] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Tamaño del archivo: </b>' + card['bytes'] +'Bytes</h6>' 
+                                            html += '<h6 class="card-text"><b>Tipo de archivo: </b>' + card['media'] +'</h6>' 
+                                            html += '</div></div>';
+                                        }
+                                        else if(card['media'] == "Text File"){
+                                            html += '<div class ="card bg-textfile-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                                html += '<a class="card-link" target="_blank" href="'+ card['link']+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card['name']
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Fecha cuando se publicó el leak: </b>' + card['date'] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Tamaño del archivo: </b>' + card['bytes'] +'Bytes</h6>' 
+                                            html += '<h6 class="card-text"><b>Tipo de archivo: </b>' + card['media'] +'</h6>' 
+                                            html += '</div></div>';
+                                        }
+                                        else if(card['media'] == "DataBase File"){
+                                            html += '<div class ="card bg-databasefile-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                                html += '<a class="card-link" target="_blank" href="'+ card['link']+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card['name']
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Fecha cuando se publicó el leak: </b>' + card['date'] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Tamaño del archivo: </b>' + card['bytes'] +'Bytes</h6>' 
+                                            html += '<h6 class="card-text"><b>Tipo de archivo: </b>' + card['media'] +'</h6>' 
+                                            html += '</div></div>';
+                                        }
+                                        else{
+                                            html += '<div class ="card bg-else-email-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                                html += '<a class="card-link" target="_blank" href="'+ card['link']+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card['name']
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Fecha cuando se publicó el leak: </b>' + card['date'] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Tamaño del archivo: </b>' + card['bytes'] +'Bytes</h6>' 
+                                            html += '<h6 class="card-text"><b>Tipo de archivo: </b>' + card['media'] +'</h6>' 
+                                            html += '</div></div>';
+                                        }
+                                        html +='</div>'
+                                    }
+                        
+                                    // Mostrar HTML generado en el elemento con id "resultadoBusquedaIntelXPhone"
+                                    document.getElementById("resultadoBusquedaIntelXPhone").innerHTML = html;
+                                    resultadosIntelXPhoneVisible = true;
+                                }
+                            }
+                        </script>  
+                    </div>
+                    {%endif%}
+                {%else%}
+                    <div class="mb-4">
+                        <p style="text-align:justify">No existen datos en IntelX comprometidos para este teléfono</p>
+                    </div>
+                {%endif%}
+            </div>
+            <div class="col-lg-12 mb-4">
+                <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
+                {%if resultadosPwnedPhone|length != 0 %}
+                    <div class="col-lg-12">
+                        <p style="text-align:justify">En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
+                        <p style="text-align:justify">Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                        <p style="text-align:justify">Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
+                        <p style="text-align:justify">Dashboard de gráficas con información del teléfono aportado.</p>
+                    </div>
+                    <div id="wrapper">
+                        <div class="content-area">
+                            <div class="container-fluid">
+                                <div class="main">
+                                    <div class="row mt-5 mb-4">
+                                        <div class="col-md-12">
+                                            <div class="box">
+                                                <div id="barHorizontalHibpPhone"> </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                
+                                    <div class="row mt-4 mb-4">
+                                        <div class="col-md-12">
+                                            <div class="box">
+                                                <div id="barVerticalHibpPhone"> </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        var resultadosPwnedPhone = {{resultadosPwnedPhone | tojson}}
+                    </script>
+                    <script type="text/javascript" src="{{ url_for('static', filename='js/dashboardPhoneHIBP.js') }}"></script>
+                    <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
+                    <div class="col-lg-12">
+                        <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
+                    </div>
+                    <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://haveibeenpwned.com">Have I Been Pwned</a>, para más info sobre esta página clicka en el link .</p>
+                    <h5>Breaches</h5>
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        {%for card in resultadosPwnedPhone[0:4]%}
+                            <div class= "col">
+                                <div class ="card border-info mb-3" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href="{{ ''.join(['http://', card[1]])}}">
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6 class="card-text"><b>Datos comprometidos: </b> {{card[4]}}.</h6>
+                                        {%if card[2] is none  %}
+                                            <h6 class="card-text"><b>Descripción de la brecha:</b> No existe descripción sobre esta brecha.</h6>
+                                        {%else%}
+                                            <h6 class="card-text"><b>Descripción de la brecha:</b> {{card[3]| safe}}.</h6>
+                                        {%endif%}
+                                    </div>
+                                </div>
+                            </div>
+                        {%endfor%}
+                    </div>
+                    {%if resultadosPwnedPhone|length > 5 %}
+                        <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                            <button class="btn btn-primary" type="button" onclick="toggleHIBPPhoneBreachResults()">Mostrar/ocultar el resto de <i>Breaches</i> por parte de HIBP para el teléfono</button>
+                        </div>
+                        <div id="resultadoBusquedaHIBPPhoneBreach">
+                            <script>
+                                var resultadosHIBPPhoneBreachVisible = false;
+                            
+                                function toggleHIBPPhoneBreachResults() {
+                                    if (resultadosHIBPPhoneBreachVisible) {
+                                        // Ocultar resultados
+                                        document.getElementById("resultadosHIBPPhoneBreachHide").style.display = "none";
+                                        resultadosHIBPPhoneBreachVisible = false;
+                                    } else {
+                                        // Generar HTML para mostrar resultados
+                                        var html = '<div id="resultadosHIBPPhoneBreachHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                        let resultadosPwnedPhone = {{resultadosPwnedPhone | tojson}}
+                                        var resultadosHIBPPhoneBreach = resultadosPwnedPhone
+                                        for (var i = 4; i < resultadosHIBPPhoneBreach.length; i++) {
+                                            var card = resultadosHIBPPhoneBreach[i];
+                                            html += '<div class="col">';
+                                            html += '<div class ="card border-info mb-3" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[1]+'">';
+                                            html += '<div class="card-header text-align:center">';
+                                            html += card[0]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6 class="card-text"><b>Datos comprometidos: </b>' + card[4] + '</h6>'
+                                            if(card[2] == null){
+                                                html += '<h6 class="card-text"><b>Descripción de la brecha: </b>No existe descripción sobre esta brecha.</h6>'
+                                            }else{
+                                                html += '<h6 class="card-text"><b>Descripción de la brecha:</b>' + card[3] + '</h6>'
+                                            }
+                                            html += '</div></div></div>';
+                                        }
+                            
+                                        // Mostrar HTML generado en el elemento con id "resultadoBusquedaHIBPEmail"
+                                        document.getElementById("resultadoBusquedaHIBPPhoneBreach").innerHTML = html;
+                                        resultadosHIBPPhoneBreachVisible = true;
+                                    }
+                                }
+                            </script>  
+                        </div>
+                    {%endif%}
+                {%else%}
+                    <div class="mb-4">
+                        <p style="text-align:justify">No existen brechas para este teléfono.</p>
+                    </div>
+                {%endif%}
+            </div>
+            {%if darknet%}
+                <div class="col-lg-12 mb-4">
+                    <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
+                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    {%if resultadoDarknetPhone|length != 0 %}
+                        <p>Se encontró un total de <b>{{resultadoDarknetPhone|length}} resultados</b>.</p>
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {%for card in resultadoDarknetPhone[0:4]%}
+                                <div class= "col">
+                                    <div class ="card border-info mb-3" style="width: 12 rem">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <div class="card-header text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </h5>
+                                            <h6 class="card-text"><b>Enlace cifrado: </b> {{card[1]}}</h6>
+                                            <h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b> {{card[3]}}</h6>
+                                            {%if card[2] == "No description provided" %}
+                                                <h6 class="card-text"><b>Descripción:</b> No existe descripción sobre la página.</h6>
+                                            {%else%}
+                                                <h6 class="card-text"><b>Descripción:</b> {{card[2]| safe}}.</h6>
+                                            {%endif%}
+                                        </div>
+                                    </div>
+                                </div>
+                            {%endfor%}
+                        </div>
+                        {%if resultadoDarknetPhone|length > 5%}
+                        <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+                            <button class="btn btn-dark" type="button" onclick="toggleDarknetPhoneResults()">Mostrar/ocultar el resto de resultados de la Darknet</button>
+                        </div>
+                        <div id="resultadoBusquedaDarknetPhone">
+                            <script>
+                                var resultadosDarknetPhoneVisible = false;
+                            
+                                function toggleDarknetPhoneResults() {
+                                    if (resultadosDarknetPhoneVisible) {
+                                        // Ocultar resultados
+                                        document.getElementById("resultadosDarknetPhoneHide").style.display = "none";
+                                        resultadosDarknetPhoneVisible = false;
+                                    } else {
+                                        // Generar HTML para mostrar resultados
+                                        var html = '<div id="resultadosDarknetPhoneHide" class="row row-cols-1 row-cols-md-4 g-4">';
+                                        var resultadoDarknetPhone = {{resultadoDarknetPhone | tojson}}
+                                        for (var i = 4; i < resultadoDarknetPhone.length; i++) {
+                                            var card = resultadoDarknetPhone[i];
+                                            html += '<div class="col">';
+                                            html += '<div class ="card border-info mb-3" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<div class="card-header text-align:center">';
+                                            html += card [0]
+                                            html += '</div>'
+                                            html += '</h5>' 
+                                            html += '<h6 class="card-text"><b>Enlace cifrado: </b>' + card[1] + '</h6>' 
+                                            html += '<h6 class="card-text"><b>Última vez comprobada la disponibilidad del sitio: </b>' + card[3] + '</h6>'
+                                            if(card[2] == "No description provided"){
+                                                html += '<h6 class="card-text"><b>Descripción: </b>No existe descripción sobre la página. </h6>' 
+                                            } else{
+                                                html += '<h6 class="card-text"><b>Descripción: </b>' +card[2] +'</h6>' 
+                                            }
+                                            html += '</div></div></div>';
+                                        } 
+                                        html += '</div>'
+                            
+                                        // Mostrar HTML generado en el elemento con id "resultadoBusquedaDarknetPhone"
+                                        document.getElementById("resultadoBusquedaDarknetPhone").innerHTML = html;
+                                        resultadosDarknetPhoneVisible = true;
+                                    }
+                                }
+                            </script>  
+                        </div>
+                    {%endif%}
+                    {%else%}
+                        <div class="mb-4">
+                            <p>No existen resultados en la Darknet para este nombre.</p>
                         </div>
                     {%endif%}
                 </div>

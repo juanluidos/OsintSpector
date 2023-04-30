@@ -7,14 +7,14 @@ from flask import Flask, flash, redirect, url_for, render_template, request
 import pandas as pd
 from searchScripts.twitter.busquedaTwitter import busquedaTwitter
 from searchScripts.twitter.pruebaLibreria import CommunityGraph, GrafoTopInteracciones, Localizaciones, SentimentalAnalysis, WordCloudGenerator
-from utils.Intelx.intelexapi import intelx
+from searchScripts.buscarPersona.emailPhone.intelexapi import intelx
 from searchScripts.buscarPersona.darknet.darkScraping import AhmiaScraping
 from searchScripts.buscarPersona.username.usernameScraping import usernameScrapping
 from searchScripts.buscarPersona.emailPhone.hibpApi import HIBPApi
 from searchScripts.buscarPersona.person.personScraping import GoogleScrapingPerson, INEScrapingName, INEScrapingSurName
 from subprocess import Popen, PIPE
 
-from utils.Proxies.getProxies import runProxyScript, set_interval
+#from utils.Proxies.getProxies import runProxyScript, set_interval
 
 p = Popen([sys.executable, "-m", "playwright", "install"], stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
@@ -52,7 +52,7 @@ def resultTwitter():
         usuario = userForm.replace("@","")
 
         #Llamada a la clase Padre
-        busqueda = busquedaTwitter(usuario, 2500)
+        busqueda = busquedaTwitter(usuario, 2000)
         resultado = busqueda.resultadoBusqueda()
 
         #WORDCLOUD
@@ -104,10 +104,9 @@ def result():
         nickname = request.form["nickname"]
         email = request.form["email"]
         city = request.form["city"]
-        phone = request.form["area_code"] + request.form["phone"]
+        phone = request.form["area_code"].replace("+","") + request.form["phone"]
         darknet = request.form["darknet"]
         baseUrlAhmia = "https://ahmia.fi/search/"
-
 
         if darknet:
             if phone:
@@ -126,14 +125,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -141,7 +162,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -159,7 +185,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone,darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,graficaNickname=graficaNickname, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone,darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nickname email city darknet phone"
 
                                 else:
@@ -173,14 +199,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -188,7 +236,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -206,7 +259,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nickname email nocity darknet phone"
 
                             else:
@@ -221,14 +274,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
 
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -244,7 +319,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nickname noemail city darknet phone"
 
                                 else:
@@ -258,14 +333,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -281,7 +378,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nickname noemail nocity darknet phone"
                                     
                         else:
@@ -297,11 +394,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -309,7 +426,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -325,7 +447,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nonickname email city darknet phone"
 
                                 else:
@@ -339,11 +461,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -351,7 +493,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -367,7 +514,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nonickname email nocity darknet phone"
 
                             else:
@@ -382,11 +529,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name = nombre, surname= apellidos, city=city)
+                                    resultado = hp.parseData(name = nombre, surname= apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -400,7 +567,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nonickname noemail city darknet phone"
 
                                 else:
@@ -414,11 +581,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name= nombre,surname=apellidos)
+                                    resultado = hp.parseData(name= nombre,surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -432,7 +619,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nonickname noemail nocity darknet phone"
 
                     else:
@@ -445,14 +632,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre,city = city)
+                                    resultado = hp.parseData(name=nombre,city = city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -460,7 +669,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -478,7 +692,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nickname email city darknet phone"
                                     
                                 else:
@@ -488,14 +702,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -503,13 +739,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname email nocity darknet phone"
                             else:
                                 if city:
@@ -519,14 +760,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -542,7 +805,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nickname noemail city darknet phone"
 
                                 else:
@@ -552,14 +815,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -575,7 +860,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nickname noemail nocity darknet phone"
 
                         else:
@@ -587,11 +872,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -599,7 +904,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -615,7 +925,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nonickname email city darknet phone"
 
                                 else:
@@ -625,11 +935,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -637,7 +967,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -653,7 +988,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nonickname email nocity darknet phone"
 
                             else:
@@ -664,11 +999,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -682,7 +1037,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nonickname noemail city darknet phone"
                                 else:
                                     #INE nombre
@@ -691,11 +1046,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -709,7 +1084,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nonickname noemail nocity darknet phone"
                 else:
                     if apellidos:
@@ -722,14 +1097,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData( surname=apellidos, city=city)
+                                    resultado = hp.parseData( surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -737,7 +1134,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -755,7 +1157,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nickname email city darknet phone"
 
                                 else:
@@ -765,14 +1167,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData( surname=apellidos)
+                                    resultado = hp.parseData( surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -780,7 +1204,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -798,7 +1227,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nickname email nocity darknet phone"
                             else:
                                 if city:
@@ -808,14 +1237,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -831,7 +1282,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nickname noemail city darknet phone"
 
                                 else:
@@ -841,14 +1292,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -864,7 +1337,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nickname noemail nocity darknet phone"
 
                         else:
@@ -876,11 +1349,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -888,7 +1381,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -904,7 +1402,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nonickname email city darknet phone"
 
                                 else:
@@ -914,11 +1412,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -926,7 +1444,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -942,7 +1465,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nonickname email nocity darknet phone
 
                             else:
@@ -953,7 +1476,22 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
                                     intel=intelx()
@@ -971,7 +1509,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetPhone=resultadoDarknetPhone)                        
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetPhone=resultadoDarknetPhone)                        
                                     #return "nonombre apellido nonickname noemail city darknet phone"
 
                                 else:
@@ -981,11 +1519,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
-                                    intel=intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    intel = intelx()
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -999,18 +1557,25 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nonickname noemail nocity darknet phone"
                     else:
                         if nickname:
                             if email:
                                 if city:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1018,7 +1583,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1035,16 +1605,23 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #"nonombre noapellido nickname email city darknet phone"
 
                                 else:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1052,7 +1629,12 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1068,17 +1650,24 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #"nonombre noapellido nickname email nocity darknet phone"
 
                             else:
                                 if city:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1092,16 +1681,23 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre noapellido nickname noemail city darknet phone"
 
                                 else:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1116,25 +1712,38 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #nonombre noapellido nickname noemail nocity darknet phone
 
                         else:
                             if email:
                                 if city:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
                                     sleep(7)
+
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1148,23 +1757,36 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre noapellido nonickname email city darknet phone"
 
                                 else:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
                                     sleep(7)
+
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1178,14 +1800,19 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #"nonombre noapellido nonickname email nocity darknet phone"
                             else:
                                 if city:
 
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1197,14 +1824,19 @@ def result():
 
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre noapellido nonickname noemail city darknet phone"
 
                                 else:
 
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1216,7 +1848,7 @@ def result():
 
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #"nonombre noapellido nonickname noemail nocity darknet phone"
 
             else:
@@ -1235,14 +1867,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1259,7 +1913,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre apellido nickname email city darknet nophone"
 
                                 else:
@@ -1273,14 +1927,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1296,7 +1972,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre apellido nickname email nocity darknet nophone"
 
                             else:
@@ -1311,11 +1987,28 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
                                     AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
@@ -1324,7 +2017,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
                                     #return "nombre apellido nickname noemail city darknet nophone"
 
                                 else:
@@ -1338,11 +2031,28 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
                                     AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
@@ -1351,7 +2061,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
                                     #return "nombre apellido nickname noemail nocity darknet nophone"
                                     
                         else:
@@ -1367,11 +2077,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1385,7 +2115,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre apellido nonickname email city darknet nophone"
 
                                 else:
@@ -1399,11 +2129,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1417,7 +2167,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre apellido nonickname email nocity darknet nophone"
 
                             else:
@@ -1432,7 +2182,22 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name = nombre, surname= apellidos, city=city)
+                                    resultado = hp.parseData(name = nombre, surname= apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
@@ -1440,7 +2205,7 @@ def result():
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)
                                     #return "nombre apellido nonickname noemail city darknet nophone"
 
                                 else:
@@ -1454,7 +2219,22 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name= nombre,surname=apellidos)
+                                    resultado = hp.parseData(name= nombre,surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
@@ -1462,7 +2242,7 @@ def result():
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)
                                     #return "nombre apellido nonickname noemail nocity darknet nophone"
 
                     else:
@@ -1475,14 +2255,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre,city = city)
+                                    resultado = hp.parseData(name=nombre,city = city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1498,7 +2300,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre noapellido nickname email city darknet nophone"
 
                                 else:
@@ -1508,14 +2310,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1531,7 +2355,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre noapellido nickname email nocity darknet nophone"
 
                             else:
@@ -1542,11 +2366,28 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
                                     AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
@@ -1555,7 +2396,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
                                     #return "nombre noapellido nickname noemail city darknet nophone"
 
                                 else:
@@ -1565,11 +2406,28 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
                                     AhmiaNombreUri = f"?q={nombre}".replace(" ", "+")
@@ -1578,7 +2436,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
                                     #return "nombre noapellido nickname noemail nocity darknet nophone"
 
                         else:
@@ -1590,11 +2448,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1608,7 +2486,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre noapellido nonickname email city darknet nophone"
 
                                 else:
@@ -1618,11 +2496,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1636,7 +2534,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre noapellido nonickname email nocity darknet nophone"
 
                             else:
@@ -1647,7 +2545,22 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
@@ -1655,7 +2568,7 @@ def result():
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)
                                     #return "nombre noapellido nonickname noemail city darknet nophone"
 
                                 else:
@@ -1665,7 +2578,22 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
@@ -1673,7 +2601,7 @@ def result():
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)
                                     #return "nombre noapellido nonickname noemail nocity darknet nophone"
 
                 else:
@@ -1687,14 +2615,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData( surname=apellidos, city=city)
+                                    resultado = hp.parseData( surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1710,7 +2660,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nonombre apellido nickname email city darknet nophone"
 
                                 else:
@@ -1720,14 +2670,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData( surname=apellidos)
+                                    resultado = hp.parseData( surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1743,7 +2715,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nonombre apellido nickname email nocity darknet nophone"
 
                             else:
@@ -1754,11 +2726,28 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
                                     AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
@@ -1767,7 +2756,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
                                     #return "nonombre apellido nickname noemail city darknet nophone"
 
                                 else:
@@ -1777,11 +2766,28 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
                                     AhmiaNombreUri = f"?q={nombre}+{apellidos}".replace(" ", "+")
@@ -1790,7 +2796,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname)
                                     #return "nonombre apellido nickname noemail nocity darknet nophone"
 
                         else:
@@ -1802,11 +2808,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1820,7 +2846,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nonombre apellido nonickname email city darknet nophone"
 
                                 else:
@@ -1830,11 +2856,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1848,7 +2894,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nonombre apellido nonickname email nocity darknet nophone"
 
                             else:
@@ -1859,11 +2905,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
-                                    intel=intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    intel = intelx()
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
@@ -1871,7 +2937,7 @@ def result():
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)                        
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)                        
                                     #return "nonombre apellido nonickname noemail city darknet nophone"
 
                                 else:
@@ -1881,11 +2947,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
-                                    intel=intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    intel = intelx()
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1897,7 +2983,7 @@ def result():
 
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre)
                                     #return "nonombre apellido nonickname noemail nocity darknet nophone"
 
                     else:
@@ -1905,11 +2991,18 @@ def result():
                             if email:
                                 if city:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1923,16 +3016,23 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #"nonombre noapellido nickname email city darknet nophone"
 
                                 else:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1946,45 +3046,56 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #"nonombre noapellido nickname email nocity darknet nophone"
 
                             else:
                                 if city:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
                                     AhmiaNicknameUri = f"?q={nickname}".replace(" ", "+")
 
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, darknet=darknet, resultadoDarknetNickname=resultadoDarknetNickname)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname, darknet=darknet, resultadoDarknetNickname=resultadoDarknetNickname)
                                     #return "nonombre noapellido nickname noemail city darknet nophone"
 
                                 else:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Darknet Scraping
                                     hp = AhmiaScraping()
                                     AhmiaNicknameUri = f"?q={nickname}".replace(" ", "+")
 
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname, darknet=darknet, resultadoDarknetNickname=resultadoDarknetNickname)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname, darknet=darknet, resultadoDarknetNickname=resultadoDarknetNickname)
                                     #nonombre noapellido nickname noemail nocity darknet nophone
 
                         else:
                             if email:
                                 if city:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1996,16 +3107,23 @@ def result():
 
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nonombre noapellido nonickname email city darknet nophone"
 
                                 else:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2017,7 +3135,7 @@ def result():
 
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetEmail=resultadoDarknetEmail)
                                     #"nonombre noapellido nonickname email nocity darknet nophone"
 
                             else:
@@ -2048,14 +3166,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2063,13 +3203,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nickname email city nodarknet phone"
 
                                 else:
@@ -2083,14 +3228,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2098,13 +3265,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nickname email nocity nodarknet phone"
 
                             else:
@@ -2119,20 +3291,42 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nickname noemail city nodarknet phone"
 
                                 else:
@@ -2146,20 +3340,42 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nickname noemail nocity nodarknet phone"
                                     
                         else:
@@ -2175,11 +3391,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2187,13 +3423,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nonickname email city nodarknet phone"
 
                                 else:
@@ -2207,11 +3448,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2219,13 +3480,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nonickname email nocity nodarknet phone"
 
                             else:
@@ -2240,17 +3506,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name = nombre, surname= apellidos, city=city)
+                                    resultado = hp.parseData(name = nombre, surname= apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nonickname noemail city nodarknet phone"
                                 else:
                                     #INE nombre
@@ -2263,16 +3549,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name= nombre,surname=apellidos)
+                                    resultado = hp.parseData(name= nombre,surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nonickname noemail nocity nodarknet phone"
 
                     else:
@@ -2285,14 +3591,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre,city = city)
+                                    resultado = hp.parseData(name=nombre,city = city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2300,13 +3628,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname email city nodarknet phone"
 
                                 else:
@@ -2316,14 +3649,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2331,13 +3686,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname email nocity nodarknet phone"
 
                             else:
@@ -2348,19 +3708,41 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname noemail city nodarknet phone"
 
                                 else:
@@ -2370,20 +3752,42 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname noemail nocity nodarknet phone"
 
                         else:
@@ -2395,11 +3799,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2407,13 +3831,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nonickname email city nodarknet phone"
 
                                 else:
@@ -2423,11 +3852,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2435,13 +3884,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nonickname email nocity nodarknet phone"
 
                             else:
@@ -2452,17 +3906,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nonickname noemail city nodarknet phone"
 
                                 else:
@@ -2472,17 +3946,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nonickname noemail nocity nodarknet phone"
 
                 else:
@@ -2496,14 +3990,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData( surname=apellidos, city=city)
+                                    resultado = hp.parseData( surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2511,13 +4027,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nickname email city nodarknet phone"
 
                                 else:
@@ -2527,14 +4048,36 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData( surname=apellidos)
+                                    resultado = hp.parseData( surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2542,13 +4085,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nickname email nocity nodarknet phone"
 
                             else:
@@ -2559,19 +4107,41 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nickname noemail city nodarknet phone"
 
                                 else:
@@ -2581,20 +4151,42 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nickname noemail nocity nodarknet phone"
 
                         else:
@@ -2606,11 +4198,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2618,13 +4230,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nonickname email city nodarknet phone"
 
                                 else:
@@ -2634,11 +4251,31 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2646,13 +4283,18 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nonickname email nocity nodarknet phone"
 
                             else:
@@ -2663,17 +4305,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
-                                    intel=intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    intel = intelx()
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)                        
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)                        
                                     #return "nonombre apellido nonickname noemail city nodarknet phone"
 
                                 else:
@@ -2683,17 +4345,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Phone intelx
-                                    intel=intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    intel = intelx()
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nonickname noemail nocity nodarknet phone"
 
                     else:
@@ -2701,11 +4383,18 @@ def result():
                             if email:
                                 if city:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2713,22 +4402,34 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nickname email city nodarknet phone"
 
                                 else:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2736,44 +4437,63 @@ def result():
                                     sleep(7)
 
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nickname email nocity nodarknet phone"
 
                             else:
                                 if city:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre noapellido nickname noemail city nodarknet phone"
 
                                 else:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #nonombre noapellido nickname noemail nocity nodarknet phone
 
                         else:
@@ -2782,65 +4502,97 @@ def result():
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
                                     sleep(7)
+
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre noapellido nonickname email city nodarknet phone"
 
                                 else:
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
                                     sleep(7)
+
                                     #Phone intelx
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nonickname email nocity nodarknet phone"
 
                             else:
                                 if city:
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre noapellido nonickname noemail city nodarknet phone"
 
                                 else:
                                     #Phone intelx
                                     intel = intelx()
-                                    resultadosIntelxPhone = intel.emailOrPhoneSearch(phone)
+                                    resultado = intel.emailOrPhoneSearch(phone)
+                                    resultadosIntelxPhone = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipoPhone = resultado[1]
+                                    diccionarioTamanyoPhone = resultado[2]
+                                    diccionarioFechasPhone = resultado[3]
 
                                     #Phone HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nonickname noemail nocity nodarknet phone"
 
             else:
@@ -2859,20 +4611,42 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre apellido nickname email city nodarknet nophone"
 
                                 else:
@@ -2886,20 +4660,42 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre apellido nickname email nocity nodarknet nophone"
 
                             else:
@@ -2914,12 +4710,29 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname)
                                     #return "nombre apellido nickname noemail city nodarknet nophone"
 
                                 else:
@@ -2933,12 +4746,29 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname)
                                     #return "nombre apellido nickname noemail nocity nodarknet nophone"
                                     
                         else:
@@ -2954,17 +4784,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(nombre, apellidos, city)
+                                    resultado = hp.parseData(nombre, apellidos, city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre apellido nonickname email city nodarknet nophone"
 
                                 else:
@@ -2978,17 +4828,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, surname=apellidos)
+                                    resultado = hp.parseData(name=nombre, surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre apellido nonickname email nocity nodarknet nophone"
 
                             else:
@@ -3003,9 +4873,24 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name = nombre, surname= apellidos, city=city)
+                                    resultado = hp.parseData(name = nombre, surname= apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch)
                                     #return "nombre apellido nonickname noemail city nodarknet nophone"
 
                                 else:
@@ -3019,9 +4904,24 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name= nombre,surname=apellidos)
+                                    resultado = hp.parseData(name= nombre,surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch)
                                     #return "nombre apellido nonickname noemail nocity nodarknet nophone"
 
                     else:
@@ -3034,20 +4934,42 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre,city = city)
+                                    resultado = hp.parseData(name=nombre,city = city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nickname email city nodarknet nophone"
 
                                 else:
@@ -3057,20 +4979,42 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nickname email nocity nodarknet nophone"
 
                             else:
@@ -3081,12 +5025,29 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname)
                                     #return "nombre noapellido nickname noemail city nodarknet nophone"
 
                                 else:
@@ -3096,12 +5057,29 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname)
                                     #return "nombre noapellido nickname noemail nocity nodarknet nophone"
 
                         else:
@@ -3113,17 +5091,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nonickname email city nodarknet nophone"
 
                                 else:
@@ -3133,17 +5131,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nonickname email nocity nodarknet nophone"
 
                             else:
@@ -3154,9 +5172,24 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre, city=city)
+                                    resultado = hp.parseData(name=nombre, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch)
                                     #return "nombre noapellido nonickname noemail city nodarknet nophone"
 
                                 else:
@@ -3166,10 +5199,24 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(name=nombre)
+                                    resultado = hp.parseData(name=nombre)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
-
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName, resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch)
                                     #return "nombre noapellido nonickname noemail nocity nodarknet nophone"
 
                 else:
@@ -3183,20 +5230,42 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData( surname=apellidos, city=city)
+                                    resultado = hp.parseData( surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nickname email city nodarknet nophone"
 
                                 else:
@@ -3206,20 +5275,42 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData( surname=apellidos)
+                                    resultado = hp.parseData( surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nickname email nocity nodarknet nophone"
 
                             else:
@@ -3230,12 +5321,29 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname)
                                     #return "nonombre apellido nickname noemail city nodarknet nophone"
 
                                 else:
@@ -3245,12 +5353,29 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, nickname=nickname, resultadoNickname = resultadosNickname)
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname)
                                     #return "nonombre apellido nickname noemail nocity nodarknet nophone"
 
                         else:
@@ -3262,17 +5387,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nonickname email city nodarknet nophone"
 
                                 else:
@@ -3282,17 +5427,37 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nonickname email nocity nodarknet nophone"
 
                             else:
@@ -3303,9 +5468,24 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos, city=city)
+                                    resultado = hp.parseData(surname=apellidos, city=city)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch)                        
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch)                        
                                     #return "nonombre apellido nonickname noemail city nodarknet nophone"
 
                                 else:
@@ -3315,9 +5495,24 @@ def result():
 
                                     #Google Custom Search
                                     hp = GoogleScrapingPerson()
-                                    resultadosGoogleSearch = hp.parseData(surname=apellidos)
+                                    resultado = hp.parseData(surname=apellidos)
+                                    resultadosGoogleSearch = resultado[0]
+                                    wordcloudGoogleSearch = resultado[1]
+                                    graficaGoogleSearch = resultado[2]
+                                    #WORDCLOUD
+                                    # Generar la wordcloud
+                                    if wordcloudGoogleSearch != "":
+                                        img_path = wordcloudGoogleSearch
+                                        # Codificar la imagen en base64
+                                        with open(img_path, 'rb') as f:
+                                            img_data = f.read()
+                                        imgWordcloud = base64.b64encode(img_data).decode('utf-8')
+                                        # Eliminar imagen temporal
+                                        os.remove(img_path)
+                                    else:
+                                        imgWordcloud = ""
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch)
                                     #return "nonombre apellido nonickname noemail nocity nodarknet nophone"
 
                     else:
@@ -3325,48 +5520,66 @@ def result():
                             if email:
                                 if city:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #"nonombre noapellido nickname email city nodarknet nophone"
 
                                 else:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #"nonombre noapellido nickname email nocity nodarknet nophone"
 
                             else:
                                 if city:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname)
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname)
                                     #return "nonombre noapellido nickname noemail city nodarknet nophone"
 
                                 else:
                                     #Nickname
-                                    resultadosNickname = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
-
-                                    return render_template("resultadosBusqueda.html", nickname=nickname, resultadoNickname = resultadosNickname)
+                                    resultado = usernameScrapping(nickname, './searchScripts/buscarPersona/username/web_accounts_list.json')
+                                    resultadosNickname = resultado[0]
+                                    graficaNickname = resultado[1]
+                                    
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname)
                                     #nonombre noapellido nickname noemail nocity nodarknet nophone
 
                         else:
@@ -3374,24 +5587,34 @@ def result():
                                 if city:
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre noapellido nonickname email city nodarknet nophone"
                                 else:
                                     #Email intelx
                                     intel = intelx()
-                                    resultadosIntelxEmail = intel.emailOrPhoneSearch(email)
+                                    resultado = intel.emailOrPhoneSearch(email)
+                                    resultadosIntelxEmail = resultado[0]
+                                    #DashBoard
+                                    diccionarioTipo = resultado[1]
+                                    diccionarioTamanyo = resultado[2]
+                                    diccionarioFechas = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #"nonombre noapellido nonickname email nocity nodarknet nophone"
                             else:
                                 if city:
@@ -3413,69 +5636,69 @@ def result():
         #quizás añadir 404.html en lugar de redirect
         return redirect("index.html")
 
-@App.route('/wordcloud')
-def wordcloud():
-    # Instanciar la clase WordCloudGenerator
-    w = WordCloudGenerator()
+# @App.route('/wordcloud')
+# def wordcloud():
+#     # Instanciar la clase WordCloudGenerator
+#     w = WordCloudGenerator()
 
-    # Generar la wordcloud
-    tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv")
-    img_path = w.generar_wordcloud(tweets_df1['Text'])
+#     # Generar la wordcloud
+#     tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv")
+#     img_path = w.generar_wordcloud(tweets_df1['Text'])
 
-    # Codificar la imagen en base64
-    with open(img_path, 'rb') as f:
-        img_data = f.read()
-    img_data_b64 = base64.b64encode(img_data).decode('utf-8')
+#     # Codificar la imagen en base64
+#     with open(img_path, 'rb') as f:
+#         img_data = f.read()
+#     img_data_b64 = base64.b64encode(img_data).decode('utf-8')
 
-    # Eliminar imagen temporal
-    os.remove(img_path)
+#     # Eliminar imagen temporal
+#     os.remove(img_path)
 
-    # Enviar respuesta al cliente
-    return render_template('wordcloud.html', img_data=img_data_b64)
+#     # Enviar respuesta al cliente
+#     return render_template('wordcloud.html', img_data=img_data_b64)
 
-@App.route('/grafoInteracciones')
-def grafoInteracciones():
-    tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv", sep=",")
-    # Crear una instancia de la clase CommunityGraph
-    w = GrafoTopInteracciones(tweets_df1["Text"])
-    # Obtener los nodos y las conexiones del grafo
-    lista_tuplas = w.contar_interacciones()
-    # Renderizar la plantilla HTML con los datos del grafo
-    return render_template('grafoInteracciones.html', lista_tuplas = lista_tuplas)
+# @App.route('/grafoInteracciones')
+# def grafoInteracciones():
+#     tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv", sep=",")
+#     # Crear una instancia de la clase CommunityGraph
+#     w = GrafoTopInteracciones(tweets_df1["Text"])
+#     # Obtener los nodos y las conexiones del grafo
+#     lista_tuplas = w.contar_interacciones()
+#     # Renderizar la plantilla HTML con los datos del grafo
+#     return render_template('grafoInteracciones.html', lista_tuplas = lista_tuplas)
 
-@App.route('/sentimental')
-def sentimental():
-    tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv", sep=",")
-    q = SentimentalAnalysis(tweets_df1[["Text","Url"]])
-    tupla_analisis = q.analizarTweets()
-    emotions = tupla_analisis[0]
-    topTweets = tupla_analisis[1]
-    listaTopTweets = []
-    for emotion, data in topTweets.items():
-        score = data['score']
-        tweet = data['tweet']
-        link = data['link']
-        listaTopTweets.append((emotion, score, tweet, link))
+# @App.route('/sentimental')
+# def sentimental():
+#     tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv", sep=",")
+#     q = SentimentalAnalysis(tweets_df1[["Text","Url"]])
+#     tupla_analisis = q.analizarTweets()
+#     emotions = tupla_analisis[0]
+#     topTweets = tupla_analisis[1]
+#     listaTopTweets = []
+#     for emotion, data in topTweets.items():
+#         score = data['score']
+#         tweet = data['tweet']
+#         link = data['link']
+#         listaTopTweets.append((emotion, score, tweet, link))
 
-    # Eliminar datos de la memoria dedicada de la GPU para liberar espacio
-    del tupla_analisis
+#     # Eliminar datos de la memoria dedicada de la GPU para liberar espacio
+#     del tupla_analisis
 
-    return render_template('sentimental.html', emotions=emotions, listaTopTweets=listaTopTweets)
+#     return render_template('sentimental.html', emotions=emotions, listaTopTweets=listaTopTweets)
 
 # @App.route('grafoComunidad')
 # def grafoComunidad():
 
 #     return render_template('grafoComunidad.html')
 
-@App.route('/locations')
-def locations():
-    tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv")
-    a = Localizaciones(tweets_df1)
-    localizaciones = a.esquema_localizaciones()
-    return render_template('locations.html', localizaciones=localizaciones)
+# @App.route('/locations')
+# def locations():
+#     tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv")
+#     a = Localizaciones(tweets_df1)
+#     localizaciones = a.esquema_localizaciones()
+#     return render_template('locations.html', localizaciones=localizaciones)
 
 #Subprocess to refresh the working free proxies available
-set_interval(runProxyScript,3600)
+# set_interval(runProxyScript,3600)
 
 if __name__ == "__main__":
     App.secret_key = os.getenv('APP_KEY')
