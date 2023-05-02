@@ -102,7 +102,3 @@ class HIBPApi:
             pasted = self.getPasted(target)
             return breached, pasted
         return breached
-
-# hp = HIBPApi("")
-# resultadosPwnedEmail =asyncio.run(hp.getPwnedData("juanluaguilerarive@gmail.com"))
-# print(resultadosPwnedEmail[0])

@@ -25,9 +25,8 @@ class busquedaTwitter:
         self.n_tweets = n_tweets
 
     def resultadoBusqueda(self):
-        # scrape = self.Scraping(self.username, self.n_tweets)
-        # dataframe = scrape.scrape()
-        dataframe = pd.read_csv("pruebaTweetsScrapingPedro.csv")
+        scrape = self.Scraping(self.username, self.n_tweets)
+        dataframe = scrape.scrape()
         word = self.WordCloudGenerator()
         wordcloud = word.generar_wordcloud(dataframe['Text'])
 
@@ -51,10 +50,19 @@ class busquedaTwitter:
             # Creating list to append tweet data to
             tweets_list1 = []
             # Using TwitterSearchScraper to scrape data and append tweets to list
-            for i,tweet in tqdm(enumerate(sntwitter.TwitterSearchScraper('from:'+ self.username).get_items()), desc= "Progreso Scraping: ", total=self.n_tweets):
-                if i>=self.n_tweets:
-                    break
-                tweets_list1.append([tweet.date, tweet.id, tweet.rawContent, tweet.url, tweet.place])
+            for i,tweet in tqdm(enumerate(sntwitter.TwitterProfileScraper(self.username).get_items()), desc= "Progreso Scraping: ", total=self.n_tweets):
+                try:
+                    if i>=self.n_tweets:
+                        break
+                    if not (tweet.rawContent).startswith("RT"):
+                        tweets_list1.append([tweet.date, tweet.id, tweet.rawContent, tweet.url, tweet.place])
+                except Exception:
+                    pass
+            # Creating a dataframe from the tweets list above 
+            tweets_df1 = pd.DataFrame(tweets_list1, columns=['Datetime', 'Tweet Id', 'Text', 'Url', 'Location'])
+
+            # Save dataframe as csv file in the current folder
+            tweets_df1.to_csv('pruebaTweetsScrapingPrueba.csv', index = False, encoding='utf-8') # False: not include index
                 
             # Creating a dataframe from the tweets list above 
             tweets_df1 = pd.DataFrame(tweets_list1, columns=['Datetime', 'Tweet Id', 'Text', 'Url', 'Location'])
@@ -159,7 +167,7 @@ class busquedaTwitter:
                         else:
                             interacciones[mencion] +=1
             print("Ordenando nodos interacciones...")
-            topInteracciones = sorted(interacciones.items(), key=lambda x: x[1], reverse=True)[:30]
+            topInteracciones = sorted(interacciones.items(), key=lambda x: x[1], reverse=True)[:31] #31 por si está el mismo en la lista, luego se elimina si lo está
             print("Nodos ordenados")
             return topInteracciones
         

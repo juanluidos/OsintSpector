@@ -18,30 +18,6 @@
 </div>
 {%endblock%}
 {%block contentRow%}
-<script type="text/javascript">
-    function minimizar(event) {
-        var boton = event.target;
-        var contenido = document.getElementById(boton.dataset.target);
-        if (contenido.style.display == 'none') {
-          contenido.style.display = 'block';
-          boton.querySelector('#icono-minimizar').innerHTML = '-';
-          contenido.parentNode.style.border = '2px solid #ccc';
-        } else {
-          contenido.style.display = 'none';
-          boton.querySelector('#icono-minimizar').innerHTML = '+';
-          contenido.parentNode.style.border = '2px solid transparent';
-        }
-      }
-      
-      document.addEventListener("DOMContentLoaded", function() {
-        var botones = document.querySelectorAll(".boton-minimizar");
-        for (var i = 0; i < botones.length; i++) {
-          var boton = botones[i];
-          boton.onclick = minimizar;
-        }
-      });
-      
-</script>
 <div class="containerBusqueda px-1">
     {#NOMBRE Y APELLIDOS#}
     {% if nombre or apellidos%}
@@ -654,7 +630,7 @@
                         var diccionarioTamanyoEmail = {{diccionarioTamanyoEmail | tojson}}
                         var diccionarioFechasEmail = {{diccionarioFechasEmail | tojson}}
                     </script>
-                    <script type="text/javascript" src="{{ url_for('static', filename='js/dashboardEmailIntelx.js') }}"></script>
+                    <script type="text/javascript" src="{{ url_for('static', filename='js/buscarPersona/dashboardEmailIntelx.js') }}"></script>
                     <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
                     <div class="col-lg-12">
                         <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
@@ -866,7 +842,7 @@
                     <script type="text/javascript">
                         var resultadosPwnedEmail = {{resultadosPwnedEmail | tojson}}
                     </script>
-                    <script type="text/javascript" src="{{ url_for('static', filename='js/dashboardEmailHIBP.js') }}"></script>
+                    <script type="text/javascript" src="{{ url_for('static', filename='js/buscarPersona/dashboardEmailHIBP.js') }}"></script>
                     <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
                     <div class="col-lg-12">
                         <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
@@ -1158,7 +1134,7 @@
                         var diccionarioTamanyoPhone = {{diccionarioTamanyoPhone | tojson}}
                         var diccionarioFechasPhone = {{diccionarioFechasPhone | tojson}}
                     </script>
-                    <script type="text/javascript" src="{{ url_for('static', filename='js/dashboardPhoneIntelx.js') }}"></script>
+                    <script type="text/javascript" src="{{ url_for('static', filename='js/buscarPersona/dashboardPhoneIntelx.js') }}"></script>
                     <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
                     <div class="col-lg-12">
                         <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
@@ -1365,7 +1341,7 @@
                     <script type="text/javascript">
                         var resultadosPwnedPhone = {{resultadosPwnedPhone | tojson}}
                     </script>
-                    <script type="text/javascript" src="{{ url_for('static', filename='js/dashboardPhoneHIBP.js') }}"></script>
+                    <script type="text/javascript" src="{{ url_for('static', filename='js/buscarPersona/dashboardPhoneHIBP.js') }}"></script>
                     <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
                     <div class="col-lg-12">
                         <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>

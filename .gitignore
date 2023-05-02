@@ -298,4 +298,9 @@ $RECYCLE.BIN/
 
 utils/Proxies/workingproxylistINE.txt
 utils/Proxies/workingproxylistHIBP.txt
+
+pruebaTweetsScraping.csv
+pruebaTweetsScrapingNuevo.csv
+pruebaTweetsScrapingPedro.csv
+pruebaTweetsScrapingPrueba.csv
 # End of https://www.toptal.com/developers/gitignore/api/python,flask,venv,dotenv,windows

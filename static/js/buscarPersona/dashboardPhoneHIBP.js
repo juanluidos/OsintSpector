@@ -80,7 +80,6 @@ Apex.grid = {
     let leakDictPhone = {};
 
     for (let leak of resultadosPwnedPhoneBreach) {
-      console.log(resultadosPwnedPhoneBreach)
       for (let i = 0; i < leak[4].length; i++) {
         let dataType = leak[4][i];
         if (dataType in leakDictPhone) {

@@ -262,7 +262,6 @@ class GoogleScrapingPerson():
                 searchResultsNameSurname.append([element["domain"], element["link"] ,element["title"], ""])
                 textoBrutoWordcloud += element["title"]
                 dominiosBruto.append(element["domain"])
-        print(dominiosBruto)
         #merge 2 list removing duplicates values
         searchResultsNameSurname.extend(x for x in searchResultsSurnameName if x not in searchResultsNameSurname)
         print("Found {data1} and google search results".format(data1 = len(searchResultsNameSurname)))
@@ -281,7 +280,6 @@ class GoogleScrapingPerson():
                 else:
                     diccionarioGrafica[extension] = 1
             datosGrafica = [list(diccionarioGrafica.keys()),list(diccionarioGrafica.values())]
-            print(datosGrafica)
             print("Datos para la gráfica generados")
 
             #Wordcloud

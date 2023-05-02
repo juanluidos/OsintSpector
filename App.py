@@ -52,7 +52,7 @@ def resultTwitter():
         usuario = userForm.replace("@","")
 
         #Llamada a la clase Padre
-        busqueda = busquedaTwitter(usuario, 2000)
+        busqueda = busquedaTwitter(usuario, 3400)
         resultado = busqueda.resultadoBusqueda()
 
         #WORDCLOUD
@@ -957,9 +957,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -988,7 +988,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nonickname email nocity darknet phone"
 
                             else:
