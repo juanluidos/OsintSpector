@@ -7,8 +7,10 @@
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 <!--Tabulator para localizaciones-->
-<link href="https://unpkg.com/tabulator-tables@5.4.4/dist/css/tabulator.min.css" rel="stylesheet">
-<script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
+<link rel="stylesheet" href="{{url_for('static',filename='css/tabulator.css')}}"/>
+<script type="text/javascript" src="{{ url_for('static', filename='js/tabulator.min.js') }}"></script>
+
+
 <!--Manejo de las horas con Luxon-->
 <script src="https://cdn.jsdelivr.net/npm/luxon@1.28.0/build/global/luxon.min.js"></script>
 {%endblock%}
@@ -16,59 +18,23 @@
 {%block headingRow%}
 <div class="row gx-4 gx-lg-5 align-items-center my-5">
     <div class="col-lg-12 text-center">
-        <h1 class="font-weight-light">Resultados de la Búsqueda</h1>
+        <h1 class="font-weight-light">Resultados del Análisis</h1>
     </div>
 </div>
 {%endblock%}
 {%block contentRow%}
 <div class="containerBusqueda px-1">
     <div class="text-justify" id="intro">
-    <p>MLorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-        molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-        numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-        optio, eaque rerum! Provident similique accusantium nemo autem. Veritatis
-        obcaecati tenetur iure eius earum ut molestias architecto voluptate aliquam
-        nihil, eveniet aliquid culpa officia aut! Impedit sit sunt quaerat, odit,
-        tenetur error, harum nesciunt ipsum debitis quas aliquid. Reprehenderit,
-        quia. Quo neque error repudiandae fuga? Ipsa laudantium molestias eos 
-        sapiente officiis modi at sunt excepturi expedita sint? Sed quibusdam
-        recusandae alias error harum maxime adipisci amet laborum. Perspiciatis 
-        minima nesciunt dolorem! Officiis iure rerum voluptates a cumque velit 
-        quibusdam sed amet tempora. Sit laborum ab, eius fugit doloribus tenetur 
-        fugiat, temporibus enim commodi iusto libero magni deleniti quod quam 
-        consequuntur! Commodi minima excepturi repudiandae velit hic maxime
-        doloremque. Quaerat provident commodi consectetur veniam similique ad 
-        earum omnis ipsum saepe, voluptas, hic voluptates pariatur est explicabo 
-        fugiat, dolorum eligendi quam cupiditate excepturi mollitia maiores labore 
-        suscipit quas? Nulla, placeat. Voluptatem quaerat non architecto ab laudantium
-        modi minima sunt esse temporibus sint culpa, recusandae aliquam numquam 
-        totam ratione voluptas quod exercitationem fuga. Possimus quis earum veniam 
-        quasi aliquam eligendi, placeat qui corporis!</p>
+    <p>Este proyecto tiene como objetivo analizar los tweets de una persona para extraer información relevante acerca de su vida y personalidad. 
+        A través del uso de técnicas de procesamiento de lenguaje natural, 
+        se realizan diferentes análisis que permiten obtener información sobre las interacciones, sentimientos, personalidad, localizaciones y fechas donde twitteo la persona, etc.
+    </p>
     </div>
     <div id="wordcloud">
         <div class="text-justify">
             <h3>Wordcloud</h3>
-            <p>NLorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-                molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-                numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-                optio, eaque rerum! Provident similique accusantium nemo autem. Veritatis
-                obcaecati tenetur iure eius earum ut molestias architecto voluptate aliquam
-                nihil, eveniet aliquid culpa officia aut! Impedit sit sunt quaerat, odit,
-                tenetur error, harum nesciunt ipsum debitis quas aliquid. Reprehenderit,
-                quia. Quo neque error repudiandae fuga? Ipsa laudantium molestias eos 
-                sapiente officiis modi at sunt excepturi expedita sint? Sed quibusdam
-                recusandae alias error harum maxime adipisci amet laborum. Perspiciatis 
-                minima nesciunt dolorem! Officiis iure rerum voluptates a cumque velit 
-                quibusdam sed amet tempora. Sit laborum ab, eius fugit doloribus tenetur 
-                fugiat, temporibus enim commodi iusto libero magni deleniti quod quam 
-                consequuntur! Commodi minima excepturi repudiandae velit hic maxime
-                doloremque. Quaerat provident commodi consectetur veniam similique ad 
-                earum omnis ipsum saepe, voluptas, hic voluptates pariatur est explicabo 
-                fugiat, dolorum eligendi quam cupiditate excepturi mollitia maiores labore 
-                suscipit quas? Nulla, placeat. Voluptatem quaerat non architecto ab laudantium
-                modi minima sunt esse temporibus sint culpa, recusandae aliquam numquam 
-                totam ratione voluptas quod exercitationem fuga. Possimus quis earum veniam 
-                quasi aliquam eligendi, placeat qui corporis!</p>
+            <p>El primer análisis consiste en la generación de un wordcloud que muestra las palabras más repetidas en los tweets, utilizando ciertos filtros para eliminar muletillas, preposiciones, artículos y el resto de palabras comunes no sensibles. 
+                Este wordcloud permite visualizar las palabras más importantes en el vocabulario de la persona y puede ayudar a entender sus intereses y preocupaciones.</p>
         </div>
         <div>
             <img class="img-fluid mx-auto d-block" src="data:image/png;base64,{{ img_data }}" alt="Wordcloud generada en la búsqueda">
@@ -77,30 +43,16 @@
     <div id="sentimental">
         <div class="text-justify">
             <h3>Análisis de Sentimientos de los Tweets</h3>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-                molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-                numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-                optio, eaque rerum! Provident similique accusantium nemo autem. Veritatis
-                obcaecati tenetur iure eius earum ut molestias architecto voluptate aliquam
-                nihil, eveniet aliquid culpa officia aut! Impedit sit sunt quaerat, odit,
-                tenetur error, harum nesciunt ipsum debitis quas aliquid. Reprehenderit,
-                quia. Quo neque error repudiandae fuga? Ipsa laudantium molestias eos 
-                sapiente officiis modi at sunt excepturi expedita sint? Sed quibusdam
-                recusandae alias error harum maxime adipisci amet laborum. Perspiciatis 
-                minima nesciunt dolorem! Officiis iure rerum voluptates a cumque velit 
-                quibusdam sed amet tempora. Sit laborum ab, eius fugit doloribus tenetur 
-                fugiat, temporibus enim commodi iusto libero magni deleniti quod quam 
-                consequuntur! Commodi minima excepturi repudiandae velit hic maxime
-                doloremque. Quaerat provident commodi consectetur veniam similique ad 
-                earum omnis ipsum saepe, voluptas, hic voluptates pariatur est explicabo 
-                fugiat, dolorum eligendi quam cupiditate excepturi mollitia maiores labore 
-                suscipit quas? Nulla, placeat. Voluptatem quaerat non architecto ab laudantium
-                modi minima sunt esse temporibus sint culpa, recusandae aliquam numquam 
-                totam ratione voluptas quod exercitationem fuga. Possimus quis earum veniam 
-                quasi aliquam eligendi, placeat qui corporis!</p>
+            <p>El segundo análisis es una tabla de los sentimientos presentes en los tweets de la persona, clasificados por alegría, enfado, miedo y tristeza. 
+                La puntuación dada a cada tweet por sentimiento es generada por un modelo de IA específico para el análisis de sentimientos llamado <a href="https://huggingface.co/MilaNLProc/xlm-emo-t">MilaNLP/xlm-emo-t</a>, 
+                que utiliza la técnica de procesamiento de lenguaje natural para analizar los sentimientos presentes en los tweets de la persona. 
+                La tabla muestra el tweet que más puntuación (de rango 0 a 1) tiene en cada clasificación de sentimientos y, junto a esta tabla, 
+                hay un gráfico que muestra el porcentaje de tweets que pertenecen a cada clasificación de sentimientos. 
+                Este análisis es útil para entender mejor la actitud de la persona en Twitter, su mayor actividad y propósito en la plataforma y su percepción sobre diferentes temas.
+                Esta IA permite analizar tweets tanto en español como en inglés, para más detalles puedes entrar <a href="https://huggingface.co/MilaNLProc/xlm-emo-t">en este enlace.</a></p>
         </div>
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-7">
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
                         <thead>
@@ -127,7 +79,7 @@
                     </table>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <canvas id="chart"></canvas>
             </div>
         </div>
@@ -137,32 +89,18 @@
         </script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/twitter/sentimental.js') }}"></script>
     </div>
-    <div id="grafoTop" style="margin-bottom:16px">
+    <div id="grafoTop">
         <div class="text-justify">
             <h3>Grafo Top Interacciones Usuarios</h3>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-                molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-                numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-                optio, eaque rerum! Provident similique accusantium nemo autem. Veritatis
-                obcaecati tenetur iure eius earum ut molestias architecto voluptate aliquam
-                nihil, eveniet aliquid culpa officia aut! Impedit sit sunt quaerat, odit,
-                tenetur error, harum nesciunt ipsum debitis quas aliquid. Reprehenderit,
-                quia. Quo neque error repudiandae fuga? Ipsa laudantium molestias eos 
-                sapiente officiis modi at sunt excepturi expedita sint? Sed quibusdam
-                recusandae alias error harum maxime adipisci amet laborum. Perspiciatis 
-                minima nesciunt dolorem! Officiis iure rerum voluptates a cumque velit 
-                quibusdam sed amet tempora. Sit laborum ab, eius fugit doloribus tenetur 
-                fugiat, temporibus enim commodi iusto libero magni deleniti quod quam 
-                consequuntur! Commodi minima excepturi repudiandae velit hic maxime
-                doloremque. Quaerat provident commodi consectetur veniam similique ad 
-                earum omnis ipsum saepe, voluptas, hic voluptates pariatur est explicabo 
-                fugiat, dolorum eligendi quam cupiditate excepturi mollitia maiores labore 
-                suscipit quas? Nulla, placeat. Voluptatem quaerat non architecto ab laudantium
-                modi minima sunt esse temporibus sint culpa, recusandae aliquam numquam 
-                totam ratione voluptas quod exercitationem fuga. Possimus quis earum veniam 
-                quasi aliquam eligendi, placeat qui corporis!</p>
+            <p>El tercer análisis consiste en un grafo que muestra los usuarios con los que más interactúa la persona en Twitter. 
+                El grafo tiene como nodo central al usuario indicado y se representan los 10 usuarios con los que tiene más conexiones, 
+                seguido de otros 20 usuarios con los que tiene interacciones pero no tantas como con los primeros 10, 
+                cuanto mayor es la arista que conecta estos nodos, mayor interacción tienen entre ellos. Este análisis permite entender la red de <i>mutuals</i> de la persona, 
+                es decir, los usuarios con los que más interacciona en la red social. Conociendo a los <i>mutuals</i> de una persona, se puede conocer mejor a la persona y 
+                tener un mejor entendimiento de su faceta, personalidad, ideas afines, etc. Además, este análisis también puede revelar el prototipo de personas con las que se agrupa este usuario en particular, 
+                lo que proporciona una idea de su círculo social en la plataforma y posiblemente su entorno en la vida real. Para conocer más datos sobre cada <i>mutual</i> solo debes clickar en el nodo deseado.</p>
         </div>
-        <div class="d-flex justify-content-center" id="grafo" style="width: 100%; height: 700px; border: 1px solid #ddd;"></div>
+        <div id="grafo" class="d-flex justify-content-center" style=" margin-bottom:16px; width: 100%; height: 700px; border: 1px solid #ddd;"></div>
         <script type="text/javascript">
             var lista_tuplas = {{ listaTuplasTop | tojson }};
             var user = {{usuario | tojson }}
@@ -170,32 +108,87 @@
         <script type="text/javascript" src="{{ url_for('static', filename='js/twitter/grafoTop.js') }}"></script>
     </div>
     <div id="grafoComunidad">
+        <div class="text-justify">
+            <h3>Grafo de Comunidades del usuario</h3>
+            <p>El cuarto análisis es un grafo de comunidades que muestra los usuarios relacionados entre sí a partir de sus tweets. 
+                Este análisis permite entender las relaciones entre los propios usuarios con los que la persona interactúa y los núcleos de gente por donde se mueve. Puede revelar información acerca de los intereses
+                 y afinidades de la persona. Si quieres saber muchos más detalles y análisis matemáticos sobre estas comunidades puedes visitar la tabla que se encuentra justo debajo del grafo</p>
+        </div>
+        <div style="margin-bottom:16px">
+            <div id="grafoCo" class="d-flex justify-content-center" style="width: 100%; height: 700px; border: 1px solid #ddd;"></div>
+            <script>
+            var grafoComunidades = {{grafoComunidad | tojson}}
+            </script>
+            <script type="text/javascript" src="{{ url_for('static', filename='js/twitter/grafoComunidad.js') }}"></script>
+        </div>
+    </div>
+    <div id="datosComunidadTabla">
+        <div>
+            <h4>Datos sobre el grafo de comunidades</h4>
+            <p>Esta sección de la cuarta parte del análisis consta de una tabla donde cada fila trata sobre una comunidad (subgrafo conexo dentro del grafo), mostrando valores matemáticos
+                importantes para su análisis. Sino tienes tanto conocimiento sobre esta rama de la matemática bajo la tabla puedes encontrar un botón, éste abre una leyenda explicando cada tipo 
+                de valor dado en cada columna junto a sus posibles utilidades en el análisis del usuario.
+            </p>
+            <h5>Modularidad del grafo</h5>
+            <p>La modularidad del grafo es: {{datosComunidad[0]}}</p>
+        </div>
+        <div class="table table-striped table-hover mx-auto w-auto" id="tablaComunidad">
+            <script>
+                var datosComunidades = {{datosComunidad | tojson}}
+            </script>
+            <script type="text/javascript" src="{{ url_for('static', filename='js/twitter/datosComunidad.js') }}"></script>
+        </div>
+        <div style="margin-bottom:16px" class="d-grid col-6 mx-auto">
+            <button class="btn btn-primary" type="button" onclick="toggleComunidadResults()">Mostrar/ocultar definiciones detalladas sobre cada valor de la tabla</button>
+        </div>
+        <div id="resultadoComunidadResults">
+            <script>
+                var resultadosComunidadResultsVisible = false;
+            
+                function toggleComunidadResults() {
+                    if (resultadosComunidadResultsVisible) {
+                        // Ocultar resultados
+                        document.getElementById("resultadosComunidadResultsHide").style.display = "none";
+                        resultadosComunidadResultsVisible = false;
+                    } else {
+                        // Generar HTML para mostrar resultados
+                        var html = '<div id="resultadosComunidadResultsHide" class="text-justify">';
+                        html += '<h5>Modularidad</h5>'
+                        html += '<p>La modularidad de un grafo mide la calidad de la división de un grafo en comunidades. Se trata de una medida de la densidad de conexiones dentro de las  comunidades en comparación con las conexiones entre las comunidades. Cuanto mayor sea la modularidad de una comunidad, mayor será la densidad de conexiones  dentro de ella y menor será la densidad de conexiones entre ella y otras comunidades. Por lo tanto, la modularidad es una medida importante para evaluar la calidad de la división en comunidades y cómo estas están estructuradas en el grafo.</p>'
+                        html += '<h5>Densidad</h5>'
+                        html += '<p>La densidad de una comunidad mide la proporción de conexiones existentes entre los nodos de la comunidad en relación con la cantidad total de conexiones posibles. Cuanto mayor sea la densidad de una comunidad, mayor será la cantidad de conexiones existentes entre sus nodos, lo que indica una mayor cohesión y  centralidad dentro de la comunidad. Por lo tanto, la densidad es una medida importante para evaluar el nivel de cohesión y centralidad dentro de una comunidad del grafo.</p>'
+                        html += '<h5>Diámetro</h5>'
+                        html += '<p>El diámetro de una comunidad mide la distancia máxima entre dos nodos de la comunidad. Cuanto menor sea el diámetro de una comunidad, menor será la distancia entre sus nodos y, por lo tanto, mayor será la conectividad y la cohesión dentro de la comunidad. Por lo tanto, el diámetro es una medida importante para evaluar el nivel de conectividad y cohesión dentro de una comunidad del grafo.</p>'
+                        html += '<h5>Excentricidad</h5>'
+                        html += '<p>La excentricidad de una comunidad mide la distancia máxima entre un nodo de la comunidad y cualquier otro nodo del grafo. Cuanto menor sea la excentricidad de una comunidad, mayor será la centralidad y la conexión con el resto del grafo. Por lo tanto, la excentricidad es una medida importante para evaluar la posición y la centralidad de una comunidad dentro del grafo.</p>'
+                        html += '<h5>Centro</h5>'
+                        html += '<p>El centro de una comunidad es el nodo o los nodos que tienen la menor excentricidad en la comunidad. Estos nodos son importantes porque están cerca de la mayoría de  los otros nodos de la comunidad y tienen una alta centralidad y conectividad dentro de la comunidad. Por lo tanto, el centro es una medida importante para evaluar la posición y la centralidad de una comunidad dentro del grafo y a su vez para saber cuales son los mejores amigos o mejores"mutuals" de la persona en dicha comunidad, ya que casi siempre está siendo mecionand@ dentro de la comunidad.</p>'
+                        html += '<h5>Grado medio</h5>'
+                        html += '<p>El grado medio de un grafo es el número medio de aristas que conectan un nodo con todos los demás nodos del grafo. Es una medida importante para entender la conectividad de cada nodo dentro de una comunidad y cómo se relaciona con el resto de la comunidad.</p>'
+                        html += '<h5>Clustering medio</h5>'
+                        html += '<p>El clustering medio de un grafo es una medida que indica qué tan conectados están los vecinos de un nodo. Es decir, mide la proporción de conexiones entre los vecinos de un nodo en relación con el número total de posibles conexiones entre ellos. Una alta medida de clustering indica que los nodos en la comunidad están altamente interconectados.</p>'
+                        html += '<h5>Cohesión</h5>'
+                        html += '<p>La cohesión de un grafo es una medida de cuánto se unen los nodos en una comunidad. En otras palabras, mide la fuerza de las conexiones entre los nodos en una comunidad y se utiliza para evaluar qué tan "fuerte" es una comunidad. Una comunidad con alta cohesión está compuesta por nodos muy conectados entre sí.</p>'
+                        html += '<h5>Centralidad de intermediación</h5>'
+                        html += '<p>La centralidad de intermediación (betweenness centrality) es una medida que indica la importancia de un nodo como intermediario en las conexiones entre otros nodos en una comunidad. Un alto valor de betweenness centrality indica que un nodo tiene una gran influencia en las interacciones entre otros nodos de la comunidad y es un elemento clave para mantener la estructura de la comunidad. Se podría decir que el nodo con más centralidad de intermediación actúa como un "puente" muy importante dentro de la comunidad, ya que si eliminamos este nodo la comunidad pierde muchísima conexión y se dividirá en varias subcomunidades. Por tanto se mostrará el valor de los 5 nodos con más centralidad de intermediación y distintos de 0.</p>'
+                        html += '</div>'
+
+                        // Mostrar HTML generado en el elemento con id "resultadoComunidadResults"
+                        document.getElementById("resultadoComunidadResults").innerHTML = html;
+                        resultadosComunidadResultsVisible = true;
+                    }
+                }
+            </script>  
+        </div>
 
     </div>
     <div id="localizaciones">
         <div class="text-justify">
             <h3>Tabla de Localizaciones</h3>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-                molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-                numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-                optio, eaque rerum! Provident similique accusantium nemo autem. Veritatis
-                obcaecati tenetur iure eius earum ut molestias architecto voluptate aliquam
-                nihil, eveniet aliquid culpa officia aut! Impedit sit sunt quaerat, odit,
-                tenetur error, harum nesciunt ipsum debitis quas aliquid. Reprehenderit,
-                quia. Quo neque error repudiandae fuga? Ipsa laudantium molestias eos 
-                sapiente officiis modi at sunt excepturi expedita sint? Sed quibusdam
-                recusandae alias error harum maxime adipisci amet laborum. Perspiciatis 
-                minima nesciunt dolorem! Officiis iure rerum voluptates a cumque velit 
-                quibusdam sed amet tempora. Sit laborum ab, eius fugit doloribus tenetur 
-                fugiat, temporibus enim commodi iusto libero magni deleniti quod quam 
-                consequuntur! Commodi minima excepturi repudiandae velit hic maxime
-                doloremque. Quaerat provident commodi consectetur veniam similique ad 
-                earum omnis ipsum saepe, voluptas, hic voluptates pariatur est explicabo 
-                fugiat, dolorum eligendi quam cupiditate excepturi mollitia maiores labore 
-                suscipit quas? Nulla, placeat. Voluptatem quaerat non architecto ab laudantium
-                modi minima sunt esse temporibus sint culpa, recusandae aliquam numquam 
-                totam ratione voluptas quod exercitationem fuga. Possimus quis earum veniam 
-                quasi aliquam eligendi, placeat qui corporis!</p>
+            <p>Por último, se presenta una tabla con las localizaciones y fechas en las que la persona publicó ciertos tweets, 
+                lo que permite inferir lugares donde vive, donde estudia, donde veranea, donde viajó, etc; junto a sus respetivas fechas. Además, se proporciona un filtro para filtrar por año, 
+                mes o incluso día, lo que permite visualizar los tweets publicados en momentos específicos. Que haya más o menos tweets en la tabla es gracias a si el usuario en cuestión
+                tiene activada la ubicación cada vez que twittea.</p>
         </div>
         <div class="table table-striped table-hover mx-auto w-auto" id="tablaLocalizaciones">
         </div>

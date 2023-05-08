@@ -1,5 +1,5 @@
 listaLocalizaciones = listaLocalizaciones
-        
+console.log(listaLocalizaciones)
 var tableColumns = [
     {title: "Fecha publicación", field: "datetime", hozAlign:"center", formatter: "plaintext", headerFilter: "input", headerFilterPlaceholder:"Filtro fechas",
     sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {

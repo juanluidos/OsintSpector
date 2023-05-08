@@ -234,7 +234,7 @@
                     {%endif%}
                     {%else%}
                         <div class="mb-4">
-                            <p>No existen resultados en la Darknet para este nombre.</p>
+                            <p style="text-align:justify"><b>No existen resultados en la Darknet para este nombre.</b></p>
                         </div>
                     {%endif%}
                 </div>
@@ -266,8 +266,13 @@
                         var indexNickname = clavesNickname.indexOf("music"); // index para categoria music
                         colorsNickname[indexNickname] = "#84A59D"; // asignamos el color al label music
                         var indexNickname = clavesNickname.indexOf("hobby"); // index para categoria hobby
-                        colorsNickname[indexNickname] = "#F7934C"; // asignamos el color al label hobby          
-                        
+                        colorsNickname[indexNickname] = "#F7934C"; // asignamos el color al label hobby
+                        var indexNickname = clavesNickname.indexOf("images"); // index para categoria images
+                        colorsNickname[indexNickname] = "#BEB7A4"; // asignamos el color al label images      
+                        var indexNickname = clavesNickname.indexOf("blog"); // index para categoria blog
+                        colorsNickname[indexNickname] = "#5B5D5B"; // asignamos el color al label blog                                            
+                        var indexNickname = clavesNickname.indexOf("shopping"); // index para categoria shopping
+                        colorsNickname[indexNickname] = "#B88EB0"; // asignamos el color al label shopping         
                         var verticalNicknameChart = new Chart(document.getElementById('nicknameChart'), {
                             type: 'bar',
                             data: {
@@ -355,7 +360,7 @@
                                     </div>
                                 </div>
 
-                                {%elif card[1] == "hobby"%}
+                            {%elif card[1] == "hobby"%}
                                 <div class ="card bg-hobby-success h-100" style="width: 12 rem">
                                     <div class="card-body">
                                         <h5 class="card-title">
@@ -369,7 +374,48 @@
                                         <p class="card-text">Usuario encontrado</p>
                                     </div>
                                 </div>
-
+                            {%elif card[1] == "images"%}
+                                <div class ="card bg-images-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card[2]}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                        <p class="card-text">Usuario encontrado</p>
+                                    </div>
+                                </div>
+                            {%elif card[1] == "blog"%}
+                                <div class ="card bg-blog-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card[2]}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                        <p class="card-text">Usuario encontrado</p>
+                                    </div>
+                                </div>
+                            {%elif card[1] == "shopping"%}
+                                <div class ="card bg-shopping-success h-100" style="width: 12 rem">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" target="_blank" href={{card[2]}}>
+                                                <div class="card-header text-white text-align:center">
+                                                    {{card[0]}} 
+                                                </div>
+                                            </a>
+                                        </h5>
+                                        <h6><b>Categoría: </b> {{card[1]}}</h6>
+                                        <p class="card-text">Usuario encontrado</p>
+                                    </div>
+                                </div>
                             {%else%}
                                 <div class ="bg-else-categoria-success h-100" style="width: 12 rem">
                                     <div class="card-body">
@@ -467,6 +513,51 @@
                                             html += '<p class="card-text">Usuario encontrado</p>' 
                                             html += '</div></div></div>';
                                         }
+                                        else if(card[1] == "hobby"){
+                                            html += '<div class="col">';
+                                            html += '<div class ="card bg-hobby-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[2]+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card[0]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Categoría: </b>' + card[1] + '</h6>' 
+                                            html += '<p class="card-text">Usuario encontrado</p>' 
+                                            html += '</div></div></div>';
+                                        }
+                                        else if(card[1] == "images"){
+                                            html += '<div class="col">';
+                                            html += '<div class ="card bg-images-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[2]+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card[0]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Categoría: </b>' + card[1] + '</h6>' 
+                                            html += '<p class="card-text">Usuario encontrado</p>' 
+                                            html += '</div></div></div>';
+                                        }
+                                        else if(card[1] == "blog"){
+                                            html += '<div class="col">';
+                                            html += '<div class ="card bg-blog-success h-100" style="width: 12 rem">';
+                                            html += '<div class="card-body">';
+                                            html += '<h5 class="card-title">';
+                                            html += '<a class="card-link" target="_blank" href="'+ card[2]+'">';
+                                            html += '<div class="card-header text-white text-align:center">';
+                                            html += card[0]
+                                            html += '</div>'
+                                            html += '</a>' 
+                                            html += '</h5>' 
+                                            html += '<h6><b>Categoría: </b>' + card[1] + '</h6>' 
+                                            html += '<p class="card-text">Usuario encontrado</p>' 
+                                            html += '</div></div></div>';
+                                        }
                                         else{
                                             html += '<div class="col">';
                                             html += '<div class ="card bg-else-categoria-success h-100" style="width: 12 rem">';
@@ -494,7 +585,7 @@
                 {%endif%}
             {%else%}
                 <div class="mb-4">
-                    <p style="text-align:justify">No existen webs donde esté registrado este nickname</p>
+                    <p style="text-align:justify"><b>No existen webs donde esté registrado este nickname.</b></p>
                 </div>
             {%endif%}
 
@@ -575,7 +666,7 @@
                     {%endif%}
                     {%else%}
                         <div class="mb-4">
-                            <p>No existen resultados en la Darknet para este nombre.</p>
+                            <p style="text-align:justify"><b>No existen resultados en la Darknet para este nombre.</b></p>
                         </div>
                     {%endif%}
                 </div>
@@ -798,7 +889,7 @@
                     {%endif%}
                 {%else%}
                     <div class="mb-4">
-                        <p style="text-align:justify">No existen datos en IntelX comprometidos para este correo</p>
+                        <p style="text-align:justify"><b>No existen datos en IntelX comprometidos para este correo.</b></p>
                     </div>
                 {%endif%}
             </div>
@@ -921,7 +1012,7 @@
                     {%endif%}
                 {%else%}
                     <div class="mb-4">
-                        <p style="text-align:justify">No existen brechas para este correo.</p>
+                        <p style="text-align:justify"><b>No existen brechas para este correo.</b></p>
                     </div>
                 {%endif%}
 
@@ -1000,7 +1091,7 @@
                     {%endif%}
                 {%else%}
                     <div class="mb-4">
-                        <p style="text-align:justify">No existen <i>pastes</i> para este correo.</p>
+                        <p style="text-align:justify"><b>No existen <i>pastes</i> para este correo.</b></p>
                     </div>
                 {%endif%}
             </div>
@@ -1081,7 +1172,7 @@
                     {%endif%}
                     {%else%}
                         <div class="mb-4">
-                            <p>No existen resultados en la Darknet para este nombre.</p>
+                            <p style="text-align:justify"><b>No existen resultados en la Darknet para este nombre.</b></p>
                         </div>
                     {%endif%}
                 </div>
@@ -1302,7 +1393,7 @@
                     {%endif%}
                 {%else%}
                     <div class="mb-4">
-                        <p style="text-align:justify">No existen datos en IntelX comprometidos para este teléfono</p>
+                        <p style="text-align:justify"><b>No existen datos en IntelX comprometidos para este teléfono.</b></p>
                     </div>
                 {%endif%}
             </div>
@@ -1420,7 +1511,7 @@
                     {%endif%}
                 {%else%}
                     <div class="mb-4">
-                        <p style="text-align:justify">No existen brechas para este teléfono.</p>
+                        <p style="text-align:justify"><b>No existen brechas para este teléfono.</b></p>
                     </div>
                 {%endif%}
             </div>
@@ -1501,7 +1592,7 @@
                     {%endif%}
                     {%else%}
                         <div class="mb-4">
-                            <p>No existen resultados en la Darknet para este nombre.</p>
+                            <p style="text-align:justify"><b>No existen resultados en la Darknet para este nombre.</b></p>
                         </div>
                     {%endif%}
                 </div>

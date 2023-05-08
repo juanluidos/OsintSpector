@@ -30,3 +30,4 @@ unidecode
 scipy
 transformers
 torch
+networkx

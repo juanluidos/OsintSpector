@@ -68,8 +68,29 @@ load_dotenv()
 # tweets_df1 = pd.DataFrame(tweets_list1, columns=['Datetime', 'Tweet Id', 'Text', 'Url', 'Location'])
 
 # # Save dataframe as csv file in the current folder
-# tweets_df1.to_csv('pruebaTweetsScraping.csv', index = False, encoding='utf-8') # False: not include index
+# tweets_df1.to_csv('pruebaTweetsScrapingNuevo.csv', index = False, encoding='utf-8') # False: not include index
 
+
+
+                                            ####NUEVA FORMA####
+# # Creating list to append tweet data to
+# tweets_list1 = []
+
+# # Using TwitterSearchScraper to scrape data and append tweets to list
+# for i,tweet in enumerate(sntwitter.TwitterProfileScraper('juanluidos').get_items()):
+#     try:
+#         if i>=3200:
+#             break
+#         if not (tweet.rawContent).startswith("RT"):
+#             tweets_list1.append([tweet.date, tweet.id, tweet.rawContent, tweet.url, tweet.place])
+#     except Exception:
+#         pass
+    
+# # Creating a dataframe from the tweets list above 
+# tweets_df1 = pd.DataFrame(tweets_list1, columns=['Datetime', 'Tweet Id', 'Text', 'Url', 'Location'])
+
+# # Save dataframe as csv file in the current folder
+# tweets_df1.to_csv('pruebaTweetsScrapingPrueba.csv', index = False, encoding='utf-8') # False: not include index
 
 class WordCloudGenerator:
     def __init__(self):
@@ -150,10 +171,10 @@ class WordCloudGenerator:
             # Devolver la ruta de la imagen
             return output_path
 
-# Crear una instancia de WordCloudGenerator
-wc_generator = WordCloudGenerator()
-tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv", sep=",")
-tweets_Pedro = pd.read_csv("pruebaTweetsScrapingPedro.csv", sep=",")
+#Crear una instancia de WordCloudGenerator
+# wc_generator = WordCloudGenerator()
+# tweets_df1 = pd.read_csv("pruebaTweetsScraping.csv", sep=",")
+# tweets_Pedro = pd.read_csv("pruebaTweetsScrapingPedro.csv", sep=",")
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -193,10 +214,8 @@ class CommunityGraph:
         # Obtener el diccionario de interacciones de los usuarios en el DataFrame
         interacciones = self.contar_interacciones()
         print(interacciones)
-        print("\n")
         usuarios = interacciones.keys()
         interacciones_tuplas = [(u, interacciones[u]) for u in usuarios]
-        print(interacciones_tuplas)
         return interacciones_tuplas
 
     def _create_graph(self):
@@ -210,7 +229,7 @@ class CommunityGraph:
 
     def show_graph_Spring(self):
         pos = nx.spring_layout(self.G, seed=42)
-        plt.figure(figsize=(20, 20))
+        plt.figure(figsize=(12, 8))
         node_color = [0] * len(self.G.nodes())
         for i, community in enumerate(self.communities):
             for node in community:
@@ -238,28 +257,24 @@ class GrafoComunidad:
         interacciones = {}
         for _, row in self.dataframe.items():
             text = row
-            # busca si el tweet contiene una mención a otro usuario
             menciones = re.findall(r'@(\w+)', text)
-            if menciones:
-                # agrega las interacciones a la lista de interacciones
-                for mencion in menciones:
-                    if mencion not in interacciones:
-                        interacciones[mencion] = {}
-                    for mencionado in menciones:
-                        if mencionado != mencion:
-                            if mencionado not in interacciones[mencion]:
-                                interacciones[mencion][mencionado] = 1
-                            else:
-                                interacciones[mencion][mencionado] += 1
-                        else:
-                            pass
+            if len(menciones) > 1:
+                for i in range(len(menciones)):
+                    for j in range(i+1, len(menciones)):
+                        usuario1 = menciones[i]
+                        usuario2 = menciones[j]
+                        if usuario1 not in interacciones:
+                            interacciones[usuario1] = {}
+                        if usuario2 not in interacciones[usuario1]:
+                            interacciones[usuario1][usuario2] = 0
+                        interacciones[usuario1][usuario2] += 1
         return interacciones
+
 
     def obtener_interacciones(self):
         # Obtener el diccionario de interacciones de los usuarios en el DataFrame
         interacciones = self.contar_interacciones()
         print(interacciones)
-        print("\n")
         usuarios = interacciones.keys()
         interacciones_tuplas = [(u, interacciones[u]) for u in usuarios]
         print(interacciones_tuplas)
@@ -293,14 +308,15 @@ class GrafoComunidad:
                 node_color[list(self.G.nodes()).index(node)] = i + 1
         nx.draw_networkx(self.G, pos=pos, node_color=node_color, cmap='tab20', with_labels=True, node_size=800)
         plt.show()
-
+    
 # Crear una instancia de la clase CommunityGraph con el dataframe
-# my_graph = CommunityGraph(tweets_Pedro["Text"])
-# my_graph.obtener_interacciones()
 
-# my_graph.show_graph_Spring()
+# tweets_df1 = pd.read_csv("pruebaTweetsScrapingNuevo.csv", sep=",")
+# my_graph = GrafoComunidad(tweets_df1["Text"])
 # my_graph.show_graph_KamadaKawai()
 
+# my_graph1 = CommunityGraph(tweets_df1["Text"])
+# my_graph1.show_graph_KamadaKawai()
 
 class GrafoTopInteracciones:
     def __init__(self, dataframe):

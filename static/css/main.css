@@ -7822,6 +7822,18 @@ textarea.form-control-lg {
   background-color: #F7934C!important;
 }
 
+.bg-images-success {
+  background-color: #BEB7A4!important;
+}
+
+.bg-blog-success {
+  background-color: #5B5D5B!important;
+}
+
+.bg-shopping-success {
+  background-color: #B88EB0!important;
+}
+
 .bg-else-categoria-success {
   background-color: #F28482!important;
 }
@@ -11352,4 +11364,5 @@ background-color: #FAB3A9!important;
   #chart {
     width: 100%;
   }
+
 }

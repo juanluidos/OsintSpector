@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import json
 import os
 import sys
 from time import sleep
@@ -52,7 +53,7 @@ def resultTwitter():
         usuario = userForm.replace("@","")
 
         #Llamada a la clase Padre
-        busqueda = busquedaTwitter(usuario, 3400)
+        busqueda = busquedaTwitter(usuario, 3200)
         resultado = busqueda.resultadoBusqueda()
 
         #WORDCLOUD
@@ -69,7 +70,8 @@ def resultTwitter():
         listaTuplasTop = resultado["grafoTop"]
 
         #GRAFO COMUNIDAD
-        #por consultar antes de nada
+        grafoComunidad = resultado["grafoComunidad"]
+        datosComunidad = resultado["datosComunidad"]
 
         #SENTIMENTAL ANALYSIS
         tupla_analisis = resultado["sentimentalAnalysis"]
@@ -88,7 +90,7 @@ def resultTwitter():
         localizaciones = resultado["locations"]
 
         # Enviar respuesta al cliente
-        return render_template("resultadosBusquedaTwitter.html",usuario=usuario, img_data=img_data_b64, listaTuplasTop = listaTuplasTop, listaTopTweets = listaTopTweets, emotions = emotions, localizaciones = localizaciones)
+        return render_template("resultadosBusquedaTwitter.html", usuario=usuario, img_data=img_data_b64, listaTuplasTop = listaTuplasTop, listaTopTweets = listaTopTweets, emotions = emotions, localizaciones = localizaciones,grafoComunidad = grafoComunidad,  datosComunidad=datosComunidad)
     
     else:
         #si es metodo GET
@@ -226,9 +228,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -259,7 +261,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nickname email nocity darknet phone"
 
                             else:
@@ -416,9 +418,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -447,7 +449,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nonickname email city darknet phone"
 
                                 else:
@@ -483,9 +485,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -514,7 +516,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre apellido nonickname email nocity darknet phone"
 
                             else:
@@ -659,9 +661,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -692,7 +694,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone, resultadosIntelxPhone=resultadosIntelxPhone, diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nickname email city darknet phone"
                                     
                                 else:
@@ -729,9 +731,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -750,7 +752,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname email nocity darknet phone"
                             else:
                                 if city:
@@ -894,9 +896,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -925,7 +927,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nombre noapellido nonickname email city darknet phone"
 
                                 else:
@@ -1124,9 +1126,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1157,7 +1159,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nickname email city darknet phone"
 
                                 else:
@@ -1194,9 +1196,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1227,7 +1229,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nickname email nocity darknet phone"
                             else:
                                 if city:
@@ -1371,9 +1373,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1402,7 +1404,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nonickname email city darknet phone"
 
                                 else:
@@ -1434,9 +1436,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1465,7 +1467,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre apellido nonickname email nocity darknet phone
 
                             else:
@@ -1573,9 +1575,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1605,7 +1607,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #"nonombre noapellido nickname email city darknet phone"
 
                                 else:
@@ -1619,9 +1621,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1650,7 +1652,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #"nonombre noapellido nickname email nocity darknet phone"
 
                             else:
@@ -1728,9 +1730,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1757,7 +1759,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #return "nonombre noapellido nonickname email city darknet phone"
 
                                 else:
@@ -1771,9 +1773,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1800,7 +1802,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
                                     resultadoDarknetPhone = hp.parseHTML(baseUrlAhmia + AhmiaPhoneUri)
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet,resultadoDarknetEmail=resultadoDarknetEmail, resultadoDarknetPhone=resultadoDarknetPhone)
                                     #"nonombre noapellido nonickname email nocity darknet phone"
                             else:
                                 if city:
@@ -1894,9 +1896,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1913,7 +1915,7 @@ def result():
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre apellido nickname email city darknet nophone"
 
                                 else:
@@ -1954,9 +1956,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -1972,7 +1974,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre apellido nickname email nocity darknet nophone"
 
                             else:
@@ -2099,9 +2101,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2115,7 +2117,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre apellido nonickname email city darknet nophone"
 
                                 else:
@@ -2151,9 +2153,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2167,7 +2169,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre apellido nonickname email nocity darknet nophone"
 
                             else:
@@ -2282,9 +2284,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2300,7 +2302,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre noapellido nickname email city darknet nophone"
 
                                 else:
@@ -2337,9 +2339,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2355,7 +2357,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre noapellido nickname email nocity darknet nophone"
 
                             else:
@@ -2470,9 +2472,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2486,7 +2488,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre, resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre noapellido nonickname email city darknet nophone"
 
                                 else:
@@ -2518,9 +2520,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2534,7 +2536,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nombre noapellido nonickname email nocity darknet nophone"
 
                             else:
@@ -2642,9 +2644,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2660,7 +2662,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nonombre apellido nickname email city darknet nophone"
 
                                 else:
@@ -2697,9 +2699,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2715,7 +2717,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nonombre apellido nickname email nocity darknet nophone"
 
                             else:
@@ -2830,9 +2832,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2846,7 +2848,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nonombre apellido nonickname email city darknet nophone"
 
                                 else:
@@ -2878,9 +2880,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -2894,7 +2896,7 @@ def result():
                                     resultadoDarknetNombre = hp.parseHTML(baseUrlAhmia+AhmiaNombreUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNombre=resultadoDarknetNombre,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nonombre apellido nonickname email nocity darknet nophone"
 
                             else:
@@ -3000,9 +3002,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3016,7 +3018,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet, resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #"nonombre noapellido nickname email city darknet nophone"
 
                                 else:
@@ -3030,9 +3032,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3046,7 +3048,7 @@ def result():
                                     resultadoDarknetNickname = hp.parseHTML(baseUrlAhmia + AhmiaNicknameUri)
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, darknet=darknet,resultadoDarknetNickname=resultadoDarknetNickname,resultadoDarknetEmail=resultadoDarknetEmail)
                                     #"nonombre noapellido nickname email nocity darknet nophone"
 
                             else:
@@ -3093,9 +3095,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3107,7 +3109,7 @@ def result():
 
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetEmail=resultadoDarknetEmail)
                                     #return "nonombre noapellido nonickname email city darknet nophone"
 
                                 else:
@@ -3121,9 +3123,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3135,7 +3137,7 @@ def result():
 
                                     resultadoDarknetEmail= hp.parseHTML(baseUrlAhmia + AhmiaEmailUri)
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetEmail=resultadoDarknetEmail)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone, darknet=darknet, resultadoDarknetEmail=resultadoDarknetEmail)
                                     #"nonombre noapellido nonickname email nocity darknet nophone"
 
                             else:
@@ -3193,9 +3195,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3214,7 +3216,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nickname email city nodarknet phone"
 
                                 else:
@@ -3255,9 +3257,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3276,7 +3278,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nickname email nocity nodarknet phone"
 
                             else:
@@ -3413,9 +3415,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3434,7 +3436,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nonickname email city nodarknet phone"
 
                                 else:
@@ -3470,9 +3472,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3491,7 +3493,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre apellido nonickname email nocity nodarknet phone"
 
                             else:
@@ -3618,9 +3620,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3639,7 +3641,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname email city nodarknet phone"
 
                                 else:
@@ -3676,9 +3678,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3697,7 +3699,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nickname email nocity nodarknet phone"
 
                             else:
@@ -3821,9 +3823,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3842,7 +3844,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nonickname email city nodarknet phone"
 
                                 else:
@@ -3874,9 +3876,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -3895,7 +3897,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nombre noapellido nonickname email nocity nodarknet phone"
 
                             else:
@@ -4017,9 +4019,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -4038,7 +4040,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nickname email city nodarknet phone"
 
                                 else:
@@ -4075,9 +4077,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -4096,7 +4098,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nickname email nocity nodarknet phone"
 
                             else:
@@ -4220,9 +4222,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -4241,7 +4243,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nonickname email city nodarknet phone"
 
                                 else:
@@ -4273,9 +4275,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -4294,7 +4296,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre apellido nonickname email nocity nodarknet phone"
 
                             else:
@@ -4392,9 +4394,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -4413,7 +4415,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nickname email city nodarknet phone"
 
                                 else:
@@ -4427,9 +4429,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -4448,7 +4450,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail,phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nickname email nocity nodarknet phone"
 
                             else:
@@ -4505,9 +4507,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -4526,7 +4528,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #return "nonombre noapellido nonickname email city nodarknet phone"
 
                                 else:
@@ -4536,9 +4538,9 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
@@ -4557,7 +4559,7 @@ def result():
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedPhone =asyncio.run(hp.getPwnedData(phone))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail, phone=phone,  resultadosIntelxPhone=resultadosIntelxPhone,diccionarioTipoPhone= diccionarioTipoPhone, diccionarioTamanyoPhone = diccionarioTamanyoPhone, diccionarioFechasPhone = diccionarioFechasPhone, resultadosPwnedPhone = resultadosPwnedPhone)
                                     #"nonombre noapellido nonickname email nocity nodarknet phone"
 
                             else:
@@ -4638,15 +4640,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre apellido nickname email city nodarknet nophone"
 
                                 else:
@@ -4687,15 +4689,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre apellido nickname email nocity nodarknet nophone"
 
                             else:
@@ -4806,15 +4808,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre apellido nonickname email city nodarknet nophone"
 
                                 else:
@@ -4850,15 +4852,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, apellidos = apellidos, resultadosINESurname = resultadosINESurname, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre apellido nonickname email nocity nodarknet nophone"
 
                             else:
@@ -4961,15 +4963,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nickname email city nodarknet nophone"
 
                                 else:
@@ -5006,15 +5008,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nickname email nocity nodarknet nophone"
 
                             else:
@@ -5113,15 +5115,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nonickname email city nodarknet nophone"
 
                                 else:
@@ -5153,15 +5155,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nombre=nombre, resultadosINEName = resultadosINEName,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nombre noapellido nonickname email nocity nodarknet nophone"
 
                             else:
@@ -5257,15 +5259,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nickname email city nodarknet nophone"
 
                                 else:
@@ -5302,15 +5304,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nickname email nocity nodarknet nophone"
 
                             else:
@@ -5409,15 +5411,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nonickname email city nodarknet nophone"
 
                                 else:
@@ -5449,15 +5451,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", apellidos = apellidos, resultadosINESurname = resultadosINESurname,  resultadosGoogleSearch = resultadosGoogleSearch, imgWordcloud= imgWordcloud, graficaGoogleSearch=graficaGoogleSearch, email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre apellido nonickname email nocity nodarknet nophone"
 
                             else:
@@ -5529,15 +5531,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #"nonombre noapellido nickname email city nodarknet nophone"
 
                                 else:
@@ -5551,16 +5553,16 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
 
-                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html", nickname=nickname,resultadoNickname = resultadosNickname,graficaNickname=graficaNickname,email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #"nonombre noapellido nickname email nocity nodarknet nophone"
 
                             else:
@@ -5590,15 +5592,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #return "nonombre noapellido nonickname email city nodarknet nophone"
                                 else:
                                     #Email intelx
@@ -5606,15 +5608,15 @@ def result():
                                     resultado = intel.emailOrPhoneSearch(email)
                                     resultadosIntelxEmail = resultado[0]
                                     #DashBoard
-                                    diccionarioTipo = resultado[1]
-                                    diccionarioTamanyo = resultado[2]
-                                    diccionarioFechas = resultado[3]
+                                    diccionarioTipoEmail = resultado[1]
+                                    diccionarioTamanyoEmail = resultado[2]
+                                    diccionarioFechasEmail = resultado[3]
 
                                     #Email HIBPwned API
                                     hp = HIBPApi(os.getenv('API_KEY_IHBP'))
                                     resultadosPwnedEmail =asyncio.run(hp.getPwnedData(email))
 
-                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipo = diccionarioTipo, diccionarioTamanyo = diccionarioTamanyo, diccionarioFechas = diccionarioFechas, resultadosPwnedEmail = resultadosPwnedEmail)
+                                    return render_template("resultadosBusqueda.html",email=email, resultadosIntelxEmail=resultadosIntelxEmail, diccionarioTipoEmail = diccionarioTipoEmail, diccionarioTamanyoEmail = diccionarioTamanyoEmail, diccionarioFechasEmail = diccionarioFechasEmail, resultadosPwnedEmail = resultadosPwnedEmail)
                                     #"nonombre noapellido nonickname email nocity nodarknet nophone"
                             else:
                                 if city:
@@ -5698,7 +5700,7 @@ def result():
 #     return render_template('locations.html', localizaciones=localizaciones)
 
 #Subprocess to refresh the working free proxies available
-# set_interval(runProxyScript,3600)
+# set_interval(runProxyScript,360)
 
 if __name__ == "__main__":
     App.secret_key = os.getenv('APP_KEY')

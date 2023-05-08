@@ -1,3 +1,4 @@
+from itertools import islice
 import tempfile
 import unicodedata
 from unidecode import unidecode
@@ -18,6 +19,7 @@ import concurrent.futures
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from tqdm import tqdm
+import networkx as nx
 
 class busquedaTwitter:
     def __init__(self, username, n_tweets):
@@ -27,6 +29,7 @@ class busquedaTwitter:
     def resultadoBusqueda(self):
         scrape = self.Scraping(self.username, self.n_tweets)
         dataframe = scrape.scrape()
+        
         word = self.WordCloudGenerator()
         wordcloud = word.generar_wordcloud(dataframe['Text'])
 
@@ -36,10 +39,14 @@ class busquedaTwitter:
         senti = self.SentimentalAnalysis(dataframe[["Text","Url"]])
         sentimentalAnalysis = senti.analizarTweets()
 
+        grafoCo = self.GrafoComunidad(dataframe['Text'])
+        grafoComunidad = grafoCo.to_json()
+        datosComunidad = grafoCo.analisis_grafo()
+
         loca = self.Localizaciones(dataframe)
         locations = loca.esquema_localizaciones()
 
-        return {"wordcloud": wordcloud, "grafoTop": grafoTop, "sentimentalAnalysis": sentimentalAnalysis, "locations": locations}
+        return {"wordcloud": wordcloud, "grafoTop": grafoTop, "sentimentalAnalysis": sentimentalAnalysis, "locations": locations, "grafoComunidad":grafoComunidad, "datosComunidad":datosComunidad}
 
     class Scraping:
         def __init__(self, username, n_tweets):
@@ -58,12 +65,6 @@ class busquedaTwitter:
                         tweets_list1.append([tweet.date, tweet.id, tweet.rawContent, tweet.url, tweet.place])
                 except Exception:
                     pass
-            # Creating a dataframe from the tweets list above 
-            tweets_df1 = pd.DataFrame(tweets_list1, columns=['Datetime', 'Tweet Id', 'Text', 'Url', 'Location'])
-
-            # Save dataframe as csv file in the current folder
-            tweets_df1.to_csv('pruebaTweetsScrapingPrueba.csv', index = False, encoding='utf-8') # False: not include index
-                
             # Creating a dataframe from the tweets list above 
             tweets_df1 = pd.DataFrame(tweets_list1, columns=['Datetime', 'Tweet Id', 'Text', 'Url', 'Location'])
             return tweets_df1
@@ -170,11 +171,94 @@ class busquedaTwitter:
             topInteracciones = sorted(interacciones.items(), key=lambda x: x[1], reverse=True)[:31] #31 por si está el mismo en la lista, luego se elimina si lo está
             print("Nodos ordenados")
             return topInteracciones
-        
-    class GrafoComunidad:
-        def __init__(self):
-            pass
     
+    class GrafoComunidad:
+        def __init__(self, dataframe):
+            self.G = nx.Graph()
+            self.dataframe = dataframe
+            print("Creando Grafo Comunidad")
+            self._create_graph()
+
+        def contar_interacciones(self):
+            interacciones = {}
+            for _, row in self.dataframe.items():
+                text = row
+                menciones = re.findall(r'@(\w+)', text)
+                if len(menciones) > 1:
+                    for i in range(len(menciones)):
+                        for j in range(i+1, len(menciones)):
+                            usuario1 = menciones[i]
+                            usuario2 = menciones[j]
+                            if usuario1 not in interacciones:
+                                interacciones[usuario1] = {}
+                            if usuario2 not in interacciones[usuario1]:
+                                interacciones[usuario1][usuario2] = 0
+                            interacciones[usuario1][usuario2] += 1
+            return interacciones
+
+
+        def obtener_interacciones(self):
+            # Obtener el diccionario de interacciones de los usuarios en el DataFrame
+            interacciones = self.contar_interacciones()
+            usuarios = interacciones.keys()
+            interacciones_tuplas = [(u, interacciones[u]) for u in usuarios]
+            return interacciones_tuplas
+
+        def _create_graph(self):
+            for user, interactions in self.obtener_interacciones():
+                for other_user in interactions.keys():
+                    self.G.add_edge(user, other_user)
+                    
+            # Get communities
+            communities = nx.algorithms.community.greedy_modularity_communities(self.G)
+            self.communities = list(communities)
+
+        def to_json(self):
+            # Convertir el grafo a un JSON compatible con Vis.js
+            nodes = []
+            edges = []
+            color = ['red', 'blue', 'green', 'orange', 'purple', 'yellow', 'pink','cyan', 'magenta', 'black', 'grey']
+            for i, community in enumerate(self.communities):
+                for node in community:
+                    nodes.append({'id': node,'label':node, 'color': color[i % len(color)]})
+                    for neighbor in self.G.neighbors(node):
+                        if neighbor in community and {'from': neighbor, 'to': node} not in edges:
+                            edges.append({'from': node, 'to': neighbor})
+            print("Grafo Comunidad generado")
+            return {'nodes': nodes, 'edges': edges}
+
+        def analisis_grafo(self):
+            resultados = []
+            color = ['Rojo', 'Azul', 'Verde', 'Naranja', 'Morado', 'Amarillo', 'Rosa','Cyan','Magenta', 'Negro', 'Gris']
+            for i, componente in enumerate(self.communities):
+                grafo_componente = self.G.subgraph(componente)
+                analisis_componente = {}
+                analisis_componente['color'] = color[i % len(color)]
+                analisis_componente['densidad'] = nx.density(grafo_componente)
+                analisis_componente['diametro'] = nx.diameter(grafo_componente)
+                analisis_componente['excentricidad'] = nx.radius(grafo_componente)
+                analisis_componente['centro'] = nx.center(grafo_componente)
+                analisis_componente['grado_medio'] = sum(dict(nx.degree(grafo_componente)).values()) / float(len(componente))
+                analisis_componente['clustering_medio'] = nx.average_clustering(grafo_componente)
+                analisis_componente['cohesion'] = nx.algorithms.cuts.conductance(self.G, componente)
+                betweeness = nx.algorithms.centrality.betweenness_centrality_subset(grafo_componente, targets=componente, sources=componente)
+                # Obtener los 5 valores más grandes distintos de 0
+                betweenness = {k: v for k, v in betweeness.items() if v > 0}
+                top_five = dict(islice(sorted(betweenness.items(), key=lambda item: item[1], reverse=True), 5))
+                print(top_five)
+
+                # Construir un nuevo diccionario con los 5 valores más grandes en orden descendente
+                analisis_componente['betweenness_comunidad'] = top_five
+
+                # Agregar cálculo de periferia
+                excentricidades = nx.eccentricity(grafo_componente)
+                periferia = [nodo for nodo, excentricidad in excentricidades.items() if excentricidad == max(excentricidades.values())]
+                analisis_componente['periferia'] = periferia
+
+                resultados.append(analisis_componente)
+            modularidad = nx.algorithms.community.modularity(self.G, self.communities)
+            return modularidad, resultados
+        
     class SentimentalAnalysis:
         def __init__(self, dataframe):
             # Inicialización de las variables necesarias
@@ -185,7 +269,9 @@ class busquedaTwitter:
             self.dataframe = dataframe # Dataframe de tweets
             self.listaTweetsLink = self.dataframe.values.tolist() # Lista de tweets con su link
             self.emotions = self.model.config.id2label.values() # Lista de emociones del modelo
+
             self.tweets_with_top_emotion = {emotion: {'score': 0, 'tweet': '', 'link': ''} for emotion in self.emotions} # Diccionario que almacena los tweets con mayor puntuación de cada emoción
+
 
         def analizarTweet(self, tweet, link):
             # Procesamiento de un tweet
