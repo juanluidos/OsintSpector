@@ -55,7 +55,6 @@
     var count = {};
     var emotions = {{ emotions | tojson }}
     var listaTopTweets = {{ listaTopTweets | tojson }}
-    console.log(listaTopTweets)
     for (var i = 0; i < emotions.length; i++) {
         var emotion = emotions[i];
         count[emotion] = (count[emotion] || 0) + 1;

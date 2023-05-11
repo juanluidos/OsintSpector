@@ -24,7 +24,11 @@
         {#INE#}
         <div class="text-justify mt-4 mb-4">
             <h3 style="text-align: center">Resultados de búsqueda para la persona: <b>{{nombre}} {{apellidos}}</b>.</h3>
+            <p style="text-align:justify">En este estudio se ha realizado un análisis de la cantidad de personas en toda España que comparten el mismo nombre y apellido dada la persona añadida en el formulario. 
+                Para ello, se han recopilado datos aportados por el INE (Instituto Nacional de Estadística). Los resultados obtenidos muestran una clara distribución geográfica y de edad, 
+                y nos permiten conocer con detalle la cantidad de personas con el mismo nombre y apellido en diferentes regiones de España.</p>
             <div id="ine">
+
                 {% if nombre%}
                     <div id="nombreIne" class="mb-2">
                         {%if resultadosINEName is string%}
@@ -51,7 +55,13 @@
                 <h5>La información encontrada en internet sobre {{nombre}} {{apellidos}} es la siguiente: </h5>
             </div>
             {%if resultadosGoogleSearch|length !=0 %}
-            <p style="text-align:justify">Wordcloud con las palabras más frecuentes encontradas en la búsqueda y otro grafico que nosecuantos loremipsum PLACEHOLDER</p>
+            <p style="text-align:justify">Este informe detalla los resultados obtenidos a través de la recopilación de información pública en internet sobre la persona específica. 
+                Utilizando el motor de búsqueda de Google, se han analizado todas las referencias a su nombre y apellido en la web. En este informe se presentan los resultados de 
+                la búsqueda en dos secciones principales:</p>
+                <p style="text-align:justify">En la primera sección, se presentan dos gráficos que resumen los principales hallazgos. El primer apartado es un <i>wordcloud</i> que muestra 
+                    las palabras más comunes encontradas en la búsqueda, lo que permite tener una idea general de las áreas que generan más información sobre la persona en cuestión.
+                    El segundo gráfico es un gráfico de donut que muestra la distribución de los dominios de las páginas donde se encontró información sobre la persona, 
+                    lo que proporciona una comprensión de los sitios web donde la información sobre la persona es más abundante</p>
                 <div style="margin-bottom:16px" class="row">
                     <div class="col-md-6">
                         <img class="img-fluid mx-auto d-block" src="data:image/png;base64,{{ imgWordcloud }}" alt="Wordcloud generada en la búsqueda">
@@ -80,6 +90,11 @@
                         var heightRatio = 1.5;
                         canvas.height = canvas.width * heightRatio;
                       </script>
+                </div>
+                <div>
+                    <p style="text-align:justify">En la segunda sección del informe, se presentan tarjetas de resumen con los detalles de cada hallazgo de la búsqueda, que incluyen 
+                        la página web donde se encontró la información, el enlace de la página, y una breve descripción de la misma para determinar si se trata de información delicada 
+                        o no. En general, este informe ofrece una comprensión detallada de la información disponible en línea sobre la persona en cuestión.</p>
                 </div>
                 <div class="row row-cols-1 row-cols-md-4 g-4">
                     {%for card in resultadosGoogleSearch[0:4]%}
@@ -160,8 +175,8 @@
             {%if darknet%}
                 <div class="col-lg-12 mb-4">
                     <h4>Datos aportados por <i>Ahmia</i> sobre la <i>Darknet</i></h4>
-                    <p>En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
-                    <p>Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
+                    <p style="text-align:justify">En este apartado veremos los resultados registrados por el motor de búsqueda de la Darknet <a href="https://ahmia.fi/about/">Ahmia</a>.</p>
+                    <p style="text-align:justify">Los enlaces encontrados no pueden ser visitados por un navegador convencional. Para entrar en páginas web de la Darknet se necesita de un navegador que pueda descifrar estos enlaces encriptados, el más popular es <a href="https://www.torproject.org/es/download/">Tor.</a></p>
                     {%if resultadoDarknetNombre|length != 0 %}
                         <p>Se encontró un total de <b>{{resultadoDarknetNombre|length}} resultados</b>.</p>
                         <div class="row row-cols-1 row-cols-md-4 g-4">
@@ -246,9 +261,13 @@
     {% if nickname %}
         <div class="text-justify mt-4 mb-4">
             <h3 style="text-align: center">Resultados para nickname: <b>{{nickname}}</b></h3>
+            <p style="text-align:justify">Este informe detalla los resultados obtenidos a través de la recopilación de información pública en internet sobre el nickname aportado. 
+                Por ello, se ha podido recopilar todas las páginas web donde se ha detectado que dicho usuario ha sido registrado.</p>
             {%if resultadoNickname|length !=0 %}
                 <div class="col-lg-12">
-                    <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas y clasificarlas una vez sepas la paleta de colores</p>
+                    <p style="text-align:justify">Cada página web está agrupada en una categoría específica, por lo que podemos presentar la siguiente gráfica que nos muestra en 
+                        qué categorías este usuario es más frecuente, lo que nos permite conocer en qué ámbitos de internet se mueve con mayor frecuencia o cuáles son sus 
+                        posibles hobbies/pasiones.</p>
                 </div>
                 <div>
                     <canvas id="nicknameChart"></canvas>
@@ -297,6 +316,11 @@
                         var heightRatio = 1.5;
                         canvas.height = canvas.width * heightRatio;
                     </script>
+                </div>
+                <div>
+                    <p style="text-align:justify">En este apartado cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así 
+                        visualmente diferenciarlas y clasificarlas una vez memorices la paleta de colores, además de su categoría también se presenta el link a dicho perfil encontrado, 
+                        el cual es el título de la tarjeta.</p>
                 </div>
                 <div class="row row-cols-1 row-cols-md-4 mb-4 g-4">
                     {%for card in resultadoNickname[0:8]%}
@@ -675,17 +699,16 @@
     {% endif %}
 
 
-    {# solo Email#}
+    {#Email#}
     {%if email %}
         <div class="text-justify mt-4 mb-4 ">
             <div class="col-lg-12 mb-4">
-                <div class="d-grid col-lg-12 mx-auto">
-                    <h3 style="text-align: center">Resultados para el email: <b>{{email}}</b></h3>
-                </div>
+                <h3 style="text-align: center">Resultados para el email: <b>{{email}}</b></h3>
                 <h4>Datos aportados por IntelX</h4>
+                <p style="text-align:justify">Utilizando el motor de búsqueda y la base de datos de <a href="https://intelx.io/about">IntelX</a>, se han analizado todas las instancias registradas donde se encontró dicho email, si desea saber más sobre IntelX es recomendable visitar <a href="https://intelx.io/about">su página web</a>. En este informe se presentan los resultados de la búsqueda en dos secciones principales:</p>
                 {%if resultadosIntelxEmail|length !=0 %}
                     <div class="col-lg-12">
-                        <p style="text-align:justify">Dashboard de gráficas con información del email aportado</p>
+                        <p style="text-align:justify">En la primera sección, se muestra un dashboard de gráficas con información acerca del email aportado, para así resumir visualmente dichos datos.</p>
                     </div>
                     <div id="wrapper">
                         <div class="content-area">
@@ -726,7 +749,7 @@
                     <div class="col-lg-12">
                         <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
                     </div>
-                    <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
+                    <p style="text-align:justify">En la segunda sección, se muestra los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, estos datos son brechas o filtraciones de información sensible acerca de tu correo y de ti, dependiendo de la brecha se puede descubrir más o menos información sensible sobre la persona .</p>
                     <div class="row row-cols-1 row-cols-md-4 mb-4 g-4">
                         {%for card in resultadosIntelxEmail[0:8]%}
                             <div class= "col">
@@ -897,10 +920,11 @@
                 <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
                 {%if resultadosPwnedEmail[0]|length != 0 %}
                     <div class="col-lg-12">
-                        <p style="text-align:justify">En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
-                        <p style="text-align:justify">Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
-                        <p style="text-align:justify">Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
-                        <p style="text-align:justify">Dashboard de gráficas con información del email aportado.</p>
+                        <p style="text-align:justify">Utilizando el motor de búsqueda y la base de datos de <a href="https://haveibeenpwned.com/About">Have I Been Pwned</a>, se han analizado todas las instancias registradas, si desea saber más sobre HIBP es recomendable visitar <a href="https://haveibeenpwned.com/About">su página web</a>. En este informe se presentan los resultados de la búsqueda en dos secciones principales, pero antes vamos a definir y diferenciar dos conceptos que se darán en este apartado:</p>
+                        <p style="text-align:justify">En este apartado diferenciaremos dos conceptos: las <i>brechas</i> y los <i>pastes</i>.</p>
+                        <p style="text-align:justify">Una <b><i>brecha</i></b> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                        <p style="text-align:justify">Un <b><i>paste</i></b> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y pública.</p>
+                        <p style="text-align:justify">En la primera sección, se muestra un dashboard de gráficas con información acerca del email aportado, para así resumir visualmente dichos datos.</p>
                     </div>
                     <div id="wrapper">
                         <div class="content-area">
@@ -935,10 +959,7 @@
                     </script>
                     <script type="text/javascript" src="{{ url_for('static', filename='js/buscarPersona/dashboardEmailHIBP.js') }}"></script>
                     <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
-                    <div class="col-lg-12">
-                        <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
-                    </div>
-                    <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://haveibeenpwned.com">Have I Been Pwned</a>, para más info sobre esta página clicka en el link .</p>
+                    <p style="text-align:justify">En la segunda sección, se muestra los resultados registrados por <a href="https://haveibeenpwned.com/About">HIBP</a>, estos datos son filtraciones (leaks) de información sensible acerca de tu correo y de ti, dependiendo de la brecha se puede descubrir más o menos información sensible y datos comprometidos sobre la persona.</p>
                     <h5>Breaches</h5>
                     <div class="row row-cols-1 row-cols-md-4 g-4">
                         {%for card in resultadosPwnedEmail[0][0:4]%}
@@ -1179,7 +1200,7 @@
             {%endif%}
         </div>
     {%endif%}
-    {#solo Phone#}
+    {#Phone#}
     {% if phone %}
         <div class="text-justify mt-4 mb-4 ">
             <div class="col-lg-12 mb-4">
@@ -1187,9 +1208,10 @@
                     <h3 style="text-align: center">Resultados para el teléfono: <b>{{phone}}</b></h3>
                 </div>
                 <h4>Datos aportados por IntelX</h4>
+                <p style="text-align:justify">Utilizando el motor de búsqueda y la base de datos de <a href="https://intelx.io/about">IntelX</a>, se han analizado todas las instancias registradas donde se encontró dicho teléfono, si desea saber más sobre IntelX es recomendable visitar <a href="https://intelx.io/about">su página web</a>. En este informe se presentan los resultados de la búsqueda en dos secciones principales:</p>
                 {%if resultadosIntelxPhone|length != 0 %}
                     <div class="col-lg-12">
-                        <p style="text-align:justify">Dashboard de gráficas con información del teléfono aportado</p>
+                        <p style="text-align:justify">En la primera sección, se muestra un dashboard de gráficas con información acerca del teléfono aportado, para así resumir visualmente dichos datos.</p>
                     </div>
                     <div id="wrapper">
                         <div class="content-area">
@@ -1227,10 +1249,7 @@
                     </script>
                     <script type="text/javascript" src="{{ url_for('static', filename='js/buscarPersona/dashboardPhoneIntelx.js') }}"></script>
                     <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
-                    <div class="col-lg-12">
-                        <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
-                    </div>
-                    <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, para más info sobre esta página clicka en el link .</p>
+                    <p style="text-align:justify">En la segunda sección, se muestra los resultados registrados por <a href="https://intelx.io/about">IntelX</a>, estos datos son filtraciones (leaks) de información sensible acerca de tu teléfono y de ti, dependiendo de la filtración se puede descubrir más o menos información sensible sobre la persona.</p>
                     <div class="row row-cols-1 row-cols-md-4 mb-4 g-4">
                         {%for card in resultadosIntelxPhone[0:8]%}
                             <div class= "col">
@@ -1401,10 +1420,10 @@
                 <h4>Datos aportados por <i>Have I Been Pwned</i></h4>
                 {%if resultadosPwnedPhone|length != 0 %}
                     <div class="col-lg-12">
-                        <p style="text-align:justify">En este apartado diferenciaremos dos apartados: las <i>brechas</i> y los <i>pastes</i>.</p>
-                        <p style="text-align:justify">Una <i>brecha</i> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
-                        <p style="text-align:justify">Un <i>paste</i> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y suelen ser el primer lugar donde aparece una brecha.</p>
-                        <p style="text-align:justify">Dashboard de gráficas con información del teléfono aportado.</p>
+                        <p style="text-align:justify">Utilizando el motor de búsqueda y la base de datos de <a href="https://haveibeenpwned.com/About">Have I Been Pwned</a>, se han analizado todas las instancias registradas, si desea saber más sobre HIBP es recomendable visitar <a href="https://haveibeenpwned.com/About">su página web</a>. En este informe se presentan los resultados de la búsqueda en dos secciones principales, pero antes vamos a definir y diferenciar dos conceptos que se darán en este apartado:</p>
+                        <p style="text-align:justify">Una <b><i>brecha</i></b> es un incidente en el que los datos quedan expuestos inadvertidamente en un sistema vulnerable, normalmente debido a controles de acceso insuficientes o a deficiencias de seguridad en el software. </p>
+                        <p style="text-align:justify">Un <b><i>paste</i></b> es información que ha sido "pegada" en un sitio web de acceso público diseñado para compartir contenidos, como <a href="https://pastebin.com">Pastebin</a>. Estos servicios son los preferidos por los hackers debido a la facilidad para compartir información de forma anónima y pública.</p>
+                        <p style="text-align:justify">En la primera sección, se muestra un dashboard de gráficas con información acerca del teléfono aportado, para así resumir visualmente dichos datos.</p>
                     </div>
                     <div id="wrapper">
                         <div class="content-area">
@@ -1434,10 +1453,7 @@
                     </script>
                     <script type="text/javascript" src="{{ url_for('static', filename='js/buscarPersona/dashboardPhoneHIBP.js') }}"></script>
                     <link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}"/>
-                    <div class="col-lg-12">
-                        <p style="text-align:justify">Cada resultado se encontrará en forma de tarjeta. El color de la misma dependerá de su categoría, para así visualmente diferenciarlas.</p>
-                    </div>
-                    <p style="text-align:justify">En este apartado veremos los resultados registrados por <a href="https://haveibeenpwned.com">Have I Been Pwned</a>, para más info sobre esta página clicka en el link .</p>
+                    <p style="text-align:justify">En la segunda sección, se muestra los resultados registrados por <a href="https://haveibeenpwned.com/About">HIBP</a>, estos datos son filtraciones (leaks) de información sensible acerca de tu teléfono y de ti, dependiendo de la brecha se puede descubrir más o menos información sensible y datos comprometidos sobre la persona.</p>
                     <h5>Breaches</h5>
                     <div class="row row-cols-1 row-cols-md-4 g-4">
                         {%for card in resultadosPwnedPhone[0:4]%}

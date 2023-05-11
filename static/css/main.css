@@ -235,11 +235,17 @@ sup {
 }
 
 a {
-  color: #000000;
+  color: #0a58ca;
   text-decoration: none;
+}
+a.freepik {
+  color: black; /* Color rojo para el enlace con la clase 'enlace-especial' */
 }
 a:hover {
   color: #0a58ca;
+}
+a.freepik:hover {
+  color: white; /* Color verde para el enlace especial cuando el cursor está sobre él */
 }
 
 a:not([href]):not([class]), a:not([href]):not([class]):hover {
@@ -7475,6 +7481,11 @@ textarea.form-control-lg {
 .py-3 {
   padding-top: 1rem !important;
   padding-bottom: 1rem !important;
+}
+.base.py-3.bg-dark {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
 }
 
 .py-4 {

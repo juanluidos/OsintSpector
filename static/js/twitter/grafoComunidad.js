@@ -32,6 +32,3 @@ var grafoComunid = new vis.Network(
     {nodes: nodes, edges: edges},
     options
 );
-// inicialización del grafo
-// Crear un nuevo grafo
-console.log(grafoComunid)

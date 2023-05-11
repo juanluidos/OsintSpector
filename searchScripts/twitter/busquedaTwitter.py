@@ -245,7 +245,6 @@ class busquedaTwitter:
                 # Obtener los 5 valores más grandes distintos de 0
                 betweenness = {k: v for k, v in betweeness.items() if v > 0}
                 top_five = dict(islice(sorted(betweenness.items(), key=lambda item: item[1], reverse=True), 5))
-                print(top_five)
 
                 # Construir un nuevo diccionario con los 5 valores más grandes en orden descendente
                 analisis_componente['betweenness_comunidad'] = top_five

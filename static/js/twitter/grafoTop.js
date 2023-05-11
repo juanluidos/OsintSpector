@@ -93,9 +93,6 @@ nodos.forEach(function (node) {
     grafo.addEventListener('click', function(params) {
     if ((params.nodes.length > 0 && (params.nodes[0] != user))) {
         // Obtener las coordenadas del evento de clic
-        console.log(params.pointer)
-        console.log(params)
-        console.log(params.event.srcEvent.pageY)
         var x = params.event.srcEvent.pageX;
         var y = params.event.srcEvent.pageY;
         var nombreUsuario = params.nodes

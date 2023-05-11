@@ -1,5 +1,4 @@
 var datosComunidad = datosComunidades
-console.log(datosComunidad[1])
 var tableColumns = [
     {title: "Color", field: "color", hozAlign:"center", headerFilter: "input"},
     {title: "Densidad", field: "densidad", hozAlign:"center", headerSort:true, sorter:"number"},
@@ -12,7 +11,6 @@ var tableColumns = [
 ];
 var tableData = [];
 for (var i = 0; i < datosComunidad[1].length; i++) {
-    console.log(datosComunidad[1][i])
     var item = datosComunidad[1][i];
     tableData.push({
         color: item.color,

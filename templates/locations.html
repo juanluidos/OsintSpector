@@ -27,7 +27,6 @@
 </html>
 <script>
     lista = {{localizaciones |tojson}}
-    console.log(lista)
 
     var tableColumns = [
         {title: "Fecha publicación", field: "datetime",hozAlign:"center", formatter: "datetime",headerFilter: "input", formatterParams:{
@@ -44,7 +43,6 @@
     for (var i = 0; i < lista.length; i++) {
         var item = lista[i];
         for (var j = 0; j < item.datetime.length; j++) {
-            console.log(item.datetime[j])
             tableData.push({
                 location: item.location,
                 datetime: item.datetime[j],
@@ -68,9 +66,6 @@
             //count - the number of rows in this group
             //data - an array of all the row data objects in this group
             //group - the group component for the group
-            console.log(data)
-            console.log("hla")
-            console.log(data[0].maps)
         
             return value  + " - " + "<a href='" + data[0].maps +"'target='_blank'>Link localización</a>" +"<span style='color:#d00; margin-left:10px;'>(" + count + " item)</span>";
         },
