@@ -113,9 +113,8 @@ class busquedaTwitter:
             # Eliminar stopwords y palabras de una sola letra
             texto_limpio = [word.lower() for word in nltk.word_tokenize(texto) if word.lower() not in all_stopwords and len(word) > 1]
 
-            # Convertir a minúsculas y normalizar letras con acentos y diéresis
+            # Convertir a minúsculas
             texto_limpio = " ".join(texto_limpio)
-            texto_limpio = unicodedata.normalize('NFKD', texto_limpio.lower()).encode('ASCII', 'ignore').decode('utf-8')
 
             return texto_limpio
 

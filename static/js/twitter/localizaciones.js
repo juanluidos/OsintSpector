@@ -61,12 +61,11 @@ var uniqueLocations = [...new Set(locationsList)];
 var resultsList = [];
 
 // Obtenemos la clave de la API desde una variable de entorno
-// var apiKey = process.env.API_GOOGLE_MAPS;
 
 // Iteramos sobre cada ubicación única
 uniqueLocations.forEach(function(location) {
   // Creamos la URL para hacer la petición a la API de Google Maps
-  var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(location) + "&key=" + "AIzaSyCHhojvLQDlrf8EHio0clmWF32AZXQ_9vo";
+  var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(location) + "&key=" + "NotToday";
 
   // Hacemos la petición a la API
   fetch(url)

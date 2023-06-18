@@ -12,7 +12,7 @@ def randomProxyServer(filename):
         lines = f.readlines()
         if(len(lines)>1):
             lines = lines[0:len(lines)-1]
-        #Si no existe ningún proxy disponible por desgracia tendríamos q usar nuestra IP (solo me ha ocurrido una vez durante todo el desarrollo, pero por si acaso)
+        #Si no existe ningún proxy disponible tendríamos q usar nuestra IP (solo me ha ocurrido una vez durante todo el desarrollo, pero por si acaso)
         elif(len(lines)==0):
             return None
     return {"https:": random.choice(lines).rstrip("\n")}

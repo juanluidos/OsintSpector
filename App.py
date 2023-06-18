@@ -52,7 +52,7 @@ def resultTwitter():
         usuario = userForm.replace("@","")
 
         #Llamada a la clase Padre
-        busqueda = busquedaTwitter(usuario, 3200)
+        busqueda = busquedaTwitter(usuario, 1600)
         resultado = busqueda.resultadoBusqueda()
 
         #WORDCLOUD

@@ -2,12 +2,10 @@ import os
 import random
 import tempfile
 import time
-from matplotlib.pyplot import show
 import requests
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 from bs4 import BeautifulSoup
-from googleapiclient.discovery import build
 import unicodedata
 from unidecode import unidecode
 from wordcloud import WordCloud, STOPWORDS
@@ -17,10 +15,8 @@ nltk.download('stopwords')
 nltk.download('punkt')
 from nltk.corpus import stopwords
 from dotenv import load_dotenv
-from PIL import Image
 
 load_dotenv()
-#from utils.commonFunctions import randomUserAgent
 
 def randomUserAgent(filename):
     with open(filename) as f:
@@ -313,9 +309,8 @@ class GoogleScrapingPerson():
             # Eliminar stopwords y palabras de una sola letra
             texto_limpio = [word.lower() for word in nltk.word_tokenize(textoBrutoWordcloud) if word.lower() not in all_stopwords and len(word) > 1]
 
-            #Convertir a minúsculas y normalizar letras con acentos y diéresis
+            #Convertir a minúsculas
             texto_limpio = " ".join(texto_limpio)
-            texto_limpio = unicodedata.normalize('NFKD', texto_limpio.lower()).encode('ASCII', 'ignore').decode('utf-8')
 
             # Eliminar los propios nombres y apellidos, lo del split es por si fuera nombre compuesto
             palabras_a_eliminar = name.split(sep=' ')

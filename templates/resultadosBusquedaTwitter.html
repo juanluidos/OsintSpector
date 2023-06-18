@@ -12,7 +12,6 @@
 <!--Mapa localizaciones-->
 <link rel="stylesheet" href="{{url_for('static',filename='css/leaflet.css')}}"/>
 <script type="text/javascript" src="{{ url_for('static', filename='js/leaflet.js') }}"></script>
-
 <!--Manejo de las horas con Luxon-->
 <script src="https://cdn.jsdelivr.net/npm/luxon@1.28.0/build/global/luxon.min.js"></script>
 {%endblock%}
@@ -21,6 +20,7 @@
 <div class="row gx-4 gx-lg-5 align-items-center my-5">
     <div class="col-lg-12 text-center">
         <h1 class="font-weight-light">Resultados del Análisis</h1>
+        <a id="botonDescargar" href="#" download="datos.json" class="btn btn-primary">Descargar información generada</a>
     </div>
 </div>
 {%endblock%}
@@ -200,5 +200,6 @@
             listaLocalizaciones = {{localizaciones |tojson}}
         </script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/twitter/localizaciones.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/twitter/descargaJson.js') }}"></script>
 </div>
 {%endblock%}
