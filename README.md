@@ -1,6 +1,6 @@
 # OsintSpector - Final Year Project (TFG)
 
-This project was developed as part of my **Final Year Project (TFG)** for my university degree. The complete project thesis can be found [here](./TFG_memoria.pdf).
+This project was developed as part of my **Final Year Project (TFG)** for my university degree in "Ingeniería Informática - Tecnologías Informáticas" with an specialization in "Tecnologías de la Información" at the University of Seville (Universidad de Sevilla-España, US). The complete project thesis can be found [here](./TFG_memoria.pdf).
 
 **OsintSpector** is an open-source intelligence (OSINT) tool that enables the collection and analysis of public data. It offers two core investigation modules, along with a user-friendly interface.
 
