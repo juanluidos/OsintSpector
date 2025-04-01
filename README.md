@@ -1,4 +1,10 @@
-# OsintSpector - Final Year Project (TFG)
+<div style="display: flex; align-items: center;">
+  <img src="./static/assets/detective.png" alt="OsintSpector Logo" width="100" style="margin-right: 15px;">
+  <div style="display: flex; align-items: center;">
+    <h1 style="margin: 0;">OsintSpector - Final Year Project (TFG)</h1>
+  </div>
+</div>
+
 
 This project was developed as part of my **Final Year Project (TFG)** in 2022-23 for my university degree in "Ingeniería Informática - Tecnologías Informáticas" with an specialization in "Tecnologías de la Información" at the University of Seville (Universidad de Sevilla, US) in Spain. The complete project thesis can be found [here](./TFG_thesis.pdf).
 
